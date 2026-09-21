@@ -59,19 +59,29 @@ VITE_API_URL=http://localhost:8000/api npm run gen:api
 ```text
 src/
 ├── api/            # client HTTP, sessão/refresh, erros, tipos gerados, endpoints por domínio
-│   ├── endpoints/  # auth, categories, cart, notifications (1 arquivo por recurso)
+│   ├── endpoints/  # auth, categories, products, campaigns, contact, cart, notifications
 │   ├── schema.d.ts # GERADO do OpenAPI — não editar à mão
 │   └── types.ts    # aliases legíveis sobre o schema
-├── app/            # providers (React Query + Auth), router, query client
+├── app/            # providers (React Query + Auth), router, query client, testes de integração
 ├── components/
-│   ├── brand/      # logo, bandeirinhas, ilustração
+│   ├── brand/      # logo (mandala real + versão vetorial pequena), faixa ornamental
 │   ├── layout/     # header, menus, footer, layout raiz
-│   └── ui/         # botão, campos, alertas, skeleton, estados de erro/vazio, toast
-├── features/       # auth, categories, cart, notifications (queries + telas do domínio)
-├── hooks/          # useDismissable, useFocusTrap
-├── lib/            # env, cn, toast, safe-redirect
-└── pages/          # Home, 404, erro de rota, "em breve"
+│   └── ui/         # botão, campos, select, textarea, paginação, alertas, skeleton, estados, toast
+├── features/
+│   ├── auth/       # sessão, guards, formulários (login, cadastro, senha)
+│   ├── categories/ # menu de categorias, tile, queries
+│   ├── catalog/    # grid/card de produto, filtros, parâmetros de URL
+│   ├── campaigns/  # carrossel de banners (campanhas ativas)
+│   ├── contact/    # validação do formulário de contato
+│   ├── home/       # seções da home (hero estático, destaques, categorias, novidades)
+│   ├── cart/       # contagem do carrinho (header)
+│   └── notifications/ # contagem do sino (header)
+├── hooks/          # useDismissable, useFocusTrap, useDebouncedValue, usePrefersReducedMotion
+├── lib/            # env, cn, toast, safe-redirect, format (BRL), slug
+└── pages/          # Home, Produtos, Categorias, Contato, 404, erro de rota, "em breve"
 ```
+
+## Convenções
 
 ## Convenções
 
@@ -83,4 +93,4 @@ src/
 
 ## Observações sobre a API (limitações encontradas)
 
-Ver o resumo de análise entregue junto com a Fase 1. Em resumo: não há favoritos, preço promocional, variações (tamanho/cor), ordenação por preço nem filtro de faixa de preço; o frete é cotado por produto mas **não é gravado no carrinho/pedido**; avaliações públicas expõem o e-mail do autor.
+Ver o resumo de análise entregue junto com a Fase 1. Em resumo: não há favoritos, preço promocional, variações (tamanho/cor), ordenação por preço nem filtro de faixa de preço; produto e categoria não têm slug (a URL usa UUID, o slug no path é só cosmético); avaliações públicas expõem o e-mail do autor.

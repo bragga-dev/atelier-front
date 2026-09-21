@@ -45,11 +45,11 @@ const routes: RouteObject[] = [
       { path: "verifique-seu-email", ...lazyPage(() => import("@/features/auth/pages/VerifyEmailPendingPage")) },
       { path: "verificacao-concluida", ...lazyPage(() => import("@/features/auth/pages/EmailVerifiedPage")) },
 
-      // ── Vitrine (próximas fases)
-      { path: "categorias", ...soon("Categorias", "Fase 2 — Catálogo") },
-      { path: "produtos", ...soon("Produtos", "Fase 2 — Catálogo") },
+      // ── Vitrine
+      { path: "categorias", ...lazyPage(() => import("@/pages/CategoriesPage")) },
+      { path: "produtos", ...lazyPage(() => import("@/pages/ProductsPage")) },
       { path: "produtos/:productId/:slug?", ...soon("Produto", "Fase 3 — Página do produto") },
-      { path: "contato", ...soon("Contato", "Fase 2 — Catálogo e contato") },
+      { path: "contato", ...lazyPage(() => import("@/pages/ContactPage")) },
 
       // ── Área logada
       {

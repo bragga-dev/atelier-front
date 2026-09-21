@@ -26,3 +26,17 @@ export type CartOut = Schemas["CartOut"];
 
 // Notificações
 export type UnreadCountOut = Schemas["UnreadCountOut"];
+
+// Produtos
+export type ProductListOut = Schemas["ProductListOut"];
+export type ProductOut = Schemas["ProductOut"];
+export type ProductPage = Schemas["PageOut_ProductListOut_"];
+export type ProductImageOut = Schemas["ImageOut"];
+
+// Campanhas (banners da home)
+export type CampaignOut = Schemas["CampaignOut"];
+export type CampaignImageOut = Schemas["CampaignImageOut"];
+
+// Contato
+export type ContactCreateIn = Schemas["ContactCreateIn"];
+export type ContactOut = Schemas["ContactOut"];

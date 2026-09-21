@@ -8,6 +8,14 @@ export const queryKeys = {
     list: (params: { page: number; pageSize: number; activeOnly: boolean }) =>
       ["categories", "list", params] as const,
   },
+  products: {
+    all: ["products"] as const,
+    list: (params: object) => ["products", "list", params] as const,
+  },
+  campaigns: {
+    running: ["campaigns", "running"] as const,
+    images: (campaignId: string) => ["campaigns", "images", campaignId] as const,
+  },
   cart: {
     all: ["cart"] as const,
   },
