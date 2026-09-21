@@ -54,7 +54,7 @@ export function CatalogFiltersBar({ filters, categories, categoriesLoading, onCh
             placeholder="Buscar por produto ou categoria"
             autoComplete="off"
             enterKeyHint="search"
-            className="block h-12 w-full rounded-md border border-sand-200 bg-white pl-12 pr-11 text-base placeholder:text-ink-soft/60 hover:border-ink/30 focus-visible:border-navy-500 [&::-webkit-search-cancel-button]:hidden"
+            className="block h-12 w-full rounded-full border border-sand-200 bg-white pl-12 pr-11 text-base placeholder:text-ink-soft/60 hover:border-ink/30 focus-visible:border-navy-500 [&::-webkit-search-cancel-button]:hidden"
           />
           {text && (
             <button
@@ -95,7 +95,7 @@ export function CatalogFiltersBar({ filters, categories, categoriesLoading, onCh
 
         <label
           className={cn(
-            "flex h-12 cursor-pointer items-center gap-3 rounded-md border border-sand-200 bg-white px-4 text-sm font-semibold hover:border-ink/30 sm:col-span-2 lg:col-span-1",
+            "flex h-12 cursor-pointer items-center gap-3 rounded-xl border border-sand-200 bg-white px-4 text-sm font-semibold hover:border-ink/30 sm:col-span-2 lg:col-span-1",
           )}
         >
           <input

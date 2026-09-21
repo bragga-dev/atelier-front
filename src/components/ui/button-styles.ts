@@ -4,7 +4,7 @@ export type ButtonVariant = "primary" | "secondary" | "gold" | "outline" | "ghos
 export type ButtonSize = "sm" | "md" | "lg";
 
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-md font-semibold uppercase tracking-[0.08em] " +
+  "inline-flex items-center justify-center gap-2 rounded-full font-semibold uppercase tracking-[0.08em] " +
   "transition-colors disabled:cursor-not-allowed disabled:opacity-60 select-none whitespace-nowrap";
 
 const VARIANTS: Record<ButtonVariant, string> = {

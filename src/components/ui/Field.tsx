@@ -9,7 +9,7 @@ interface TextFieldProps extends ComponentPropsWithRef<"input"> {
 }
 
 const INPUT_BASE =
-  "block h-12 w-full rounded-md border bg-white px-4 text-base text-ink placeholder:text-ink-soft/60 " +
+  "block h-12 w-full rounded-xl border bg-white px-4 text-base text-ink placeholder:text-ink-soft/60 " +
   "transition-colors disabled:cursor-not-allowed disabled:bg-sand disabled:opacity-70";
 
 function inputTone(hasError: boolean): string {

@@ -25,7 +25,7 @@ function pageItems(page: number, pages: number): PageItem[] {
   return items;
 }
 
-const CELL = "grid size-10 place-items-center rounded-md border text-sm font-semibold transition-colors";
+const CELL = "grid size-10 place-items-center rounded-full border text-sm font-semibold transition-colors";
 
 export function Pagination({ page, pages, buildHref, className }: PaginationProps) {
   if (pages <= 1) return null;
