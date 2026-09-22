@@ -120,9 +120,14 @@ describe("/produtos", () => {
     await screen.findByText("Tapete de Crochê 1");
     const before = calls.filter((c) => c.path === "/products/").length;
     await userEvent.type(screen.getByRole("searchbox", { name: "Buscar produtos" }), "cro");
-    await waitFor(() => expect(router.state.location.search).toBe("?busca=cro"), { timeout: 2000 });
-    const searches = calls.filter((c) => c.path === "/products/" && c.query.search);
-    expect(searches).toHaveLength(1);
+    await waitFor(() => expect(router.state.location.search).toBe("?busca=cro"));
+    // A URL muda antes do React Query disparar a nova busca — espera a chamada de verdade acontecer.
+    // Só a página 1 importa aqui: a pré-busca da página seguinte (Fase 2) também carrega o termo
+    // de busca, então contar "qualquer chamada com search" seria contar as duas de propósito.
+    await waitFor(() => {
+      expect(calls.filter((c) => c.path === "/products/" && c.query.search && c.query.page === "1")).toHaveLength(1);
+    });
+    const searches = calls.filter((c) => c.path === "/products/" && c.query.search && c.query.page === "1");
     expect(searches[0]!.query).toMatchObject({ search: "cro", page: "1" });
     expect(calls.filter((c) => c.path === "/products/").length).toBeGreaterThan(before);
   });

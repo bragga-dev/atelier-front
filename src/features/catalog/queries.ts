@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
 import { productsApi, type ListProductsParams } from "@/api/endpoints/products";
 import { queryKeys } from "@/api/query-keys";
+import { isApiError } from "@/api/errors";
 
 /** Opções compartilhadas entre `useQuery` e `prefetchQuery` (próxima página). */
 export function productsQueryOptions(params: ListProductsParams) {
@@ -15,4 +16,20 @@ export function productsQueryOptions(params: ListProductsParams) {
 
 export function useProducts(params: ListProductsParams) {
   return useQuery(productsQueryOptions(params));
+}
+
+export function productQueryOptions(productId: string) {
+  return queryOptions({
+    queryKey: queryKeys.products.detail(productId),
+    queryFn: ({ signal }) => productsApi.get(productId, signal),
+    staleTime: 60_000,
+  });
+}
+
+export function useProduct(productId: string) {
+  return useQuery({
+    ...productQueryOptions(productId),
+    // Um 404 é definitivo (o produto não existe) — tentar de novo não ajuda.
+    retry: (failureCount, error) => !isApiError(error) && failureCount < 2,
+  });
 }

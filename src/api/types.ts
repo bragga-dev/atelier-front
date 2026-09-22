@@ -23,6 +23,7 @@ export type CategoryPage = Schemas["PageOut_ProductCategoryOut_"];
 
 // Carrinho
 export type CartOut = Schemas["CartOut"];
+export type CartItemCreateIn = Schemas["CartItemCreateIn"];
 
 // Notificações
 export type UnreadCountOut = Schemas["UnreadCountOut"];
@@ -32,6 +33,14 @@ export type ProductListOut = Schemas["ProductListOut"];
 export type ProductOut = Schemas["ProductOut"];
 export type ProductPage = Schemas["PageOut_ProductListOut_"];
 export type ProductImageOut = Schemas["ImageOut"];
+
+// Avaliações
+export type ReviewOut = Schemas["ReviewsOut"];
+export type ProductRatingSummaryOut = Schemas["ProductRatingSummaryOut"];
+
+// Frete (Frenet)
+export type ShippingQuoteIn = Schemas["ShippingQuoteIn"];
+export type ShippingOptionOut = Schemas["FrenetShippingOptionOut"];
 
 // Campanhas (banners da home)
 export type CampaignOut = Schemas["CampaignOut"];

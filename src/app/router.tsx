@@ -48,7 +48,7 @@ const routes: RouteObject[] = [
       // ── Vitrine
       { path: "categorias", ...lazyPage(() => import("@/pages/CategoriesPage")) },
       { path: "produtos", ...lazyPage(() => import("@/pages/ProductsPage")) },
-      { path: "produtos/:productId/:slug?", ...soon("Produto", "Fase 3 — Página do produto") },
+      { path: "produtos/:productId/:slug?", ...lazyPage(() => import("@/pages/ProductPage")) },
       { path: "contato", ...lazyPage(() => import("@/pages/ContactPage")) },
 
       // ── Área logada

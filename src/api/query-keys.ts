@@ -11,6 +11,15 @@ export const queryKeys = {
   products: {
     all: ["products"] as const,
     list: (params: object) => ["products", "list", params] as const,
+    detail: (productId: string) => ["products", "detail", productId] as const,
+  },
+  reviews: {
+    forProduct: (productId: string) => ["reviews", "product", productId] as const,
+    summary: (productId: string) => ["reviews", "product", productId, "summary"] as const,
+  },
+  shipping: {
+    quote: (productId: string, cep: string, quantity: number) =>
+      ["shipping", "quote", productId, cep, quantity] as const,
   },
   campaigns: {
     running: ["campaigns", "running"] as const,

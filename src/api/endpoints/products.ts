@@ -1,5 +1,5 @@
 import { http } from "../http";
-import type { ProductPage } from "../types";
+import type { ProductOut, ProductPage } from "../types";
 
 export interface ListProductsParams {
   page?: number;
@@ -27,4 +27,7 @@ export const productsApi = {
         sort: params.sort,
       },
     }),
+
+  get: (productId: string, signal?: AbortSignal) =>
+    http.get<ProductOut>(`/products/${productId}`, { signal, auth: false }),
 };
