@@ -28,6 +28,16 @@ export const queryKeys = {
   cart: {
     all: ["cart"] as const,
   },
+  address: {
+    all: ["address"] as const,
+  },
+  orders: {
+    all: ["orders"] as const,
+    detail: (orderId: string) => ["orders", "detail", orderId] as const,
+  },
+  payments: {
+    forOrder: (orderId: string) => ["payments", "order", orderId] as const,
+  },
   notifications: {
     unreadCount: ["notifications", "unread-count"] as const,
   },

@@ -27,6 +27,24 @@ export type CartItemOut = Schemas["CartItemOut"];
 export type CartItemCreateIn = Schemas["CartItemCreateIn"];
 export type CartItemUpdateIn = Schemas["CartItemUpdateIn"];
 
+// Endereços
+export type AddressOut = Schemas["AddressOut"];
+export type AddressCreateIn = Schemas["AddressCreateIn"];
+export type BrazilianState = Schemas["BrazilianStateEnum"];
+
+// Pedidos (checkout)
+export type OrderOut = Schemas["OrderOut"];
+export type OrderItemOut = Schemas["OrderItemOut"];
+export type OrderCreateIn = Schemas["OrderCreateIn"];
+export type OrderCancelIn = Schemas["OrderCancelIn"];
+export type OrderStatus = Schemas["StatusOrderEnum"];
+
+// Pagamentos (Asaas)
+export type PaymentOut = Schemas["PaymentOut"];
+export type PaymentCreateIn = Schemas["PaymentCreateIn"];
+export type PaymentBillingType = Schemas["PaymentBillingTypeEnum"];
+export type PaymentStatus = Schemas["PaymentStatusEnum"];
+
 // Notificações
 export type UnreadCountOut = Schemas["UnreadCountOut"];
 
