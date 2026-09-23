@@ -20,6 +20,21 @@ const CATEGORIES = { items: [
   { product_category_id: "cat-2", category_name: "Cerâmica", category_image_url: "http://x/z.jpg", is_active: true },
 ], total: 2, page: 1, page_size: 100, pages: 1 };
 
+function cartProduct(n: number) {
+  return {
+    product_id: `p${n}`, product_name: `Produto ${n}`, categories: [], is_active: true,
+    price: "50.00", stock: 10, description: "", in_stock: true, cover_image: null,
+  };
+}
+const CART = {
+  cart_id: "k",
+  items: [
+    { cart_item_id: "ci1", product: cartProduct(1), quantity_item: 2, unit_price_item: "50.00", shipping_type: null, shipping_value: "0.00", subtotal: "100.00" },
+    { cart_item_id: "ci2", product: cartProduct(2), quantity_item: 3, unit_price_item: "50.00", shipping_type: null, shipping_value: "0.00", subtotal: "150.00" },
+  ],
+  total_price: "250.00", total_shipping: "0.00", total_geral: "250.00",
+};
+
 let loggedIn = false;
 function mockApi(opts: { authed?: boolean } = {}) {
   loggedIn = !!opts.authed;
@@ -31,7 +46,7 @@ function mockApi(opts: { authed?: boolean } = {}) {
     if (path === "/auth/login") { loggedIn = true; return json(200, { access: "tok" }); }
     if (path === "/auth/me") return loggedIn ? json(200, ME) : json(401, { detail: "x" });
     if (path === "/categories/") return json(200, CATEGORIES);
-    if (path === "/cart/") return json(200, { cart_id: "k", items: [{ quantity_item: 2 }, { quantity_item: 3 }], total_price: "0", total_shipping: "0", total_geral: "0" });
+    if (path === "/cart/") return json(200, CART);
     if (path === "/notifications/unread-count") return json(200, { unread_count: 7 });
     if (path === "/auth/logout") return json(200, { detail: "ok" });
     return json(404, { detail: "nope" });

@@ -23,7 +23,9 @@ export type CategoryPage = Schemas["PageOut_ProductCategoryOut_"];
 
 // Carrinho
 export type CartOut = Schemas["CartOut"];
+export type CartItemOut = Schemas["CartItemOut"];
 export type CartItemCreateIn = Schemas["CartItemCreateIn"];
+export type CartItemUpdateIn = Schemas["CartItemUpdateIn"];
 
 // Notificações
 export type UnreadCountOut = Schemas["UnreadCountOut"];

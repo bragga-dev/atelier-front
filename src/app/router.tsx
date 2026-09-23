@@ -55,7 +55,8 @@ const routes: RouteObject[] = [
       {
         element: <RequireAuth />,
         children: [
-          { path: "carrinho", ...soon("Carrinho", "Fase 4 — Carrinho") },
+          { path: "carrinho", ...lazyPage(() => import("@/pages/CartPage")) },
+          { path: "checkout", ...soon("Finalizar compra", "Fase 5 — Checkout e pedidos") },
           { path: "notificacoes", ...soon("Notificações", "Fase 6 — Conta") },
           { path: "chat", ...soon("Chat com a loja", "Fase 6 — Conta") },
           // O backend gera links de e-mail e notificações apontando para /painel/… — mantemos esse prefixo.
