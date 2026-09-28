@@ -20,21 +20,6 @@ const CATEGORIES = { items: [
   { product_category_id: "cat-2", category_name: "Cerâmica", category_image_url: "http://x/z.jpg", is_active: true },
 ], total: 2, page: 1, page_size: 100, pages: 1 };
 
-function cartProduct(n: number) {
-  return {
-    product_id: `p${n}`, product_name: `Produto ${n}`, categories: [], is_active: true,
-    price: "50.00", stock: 10, description: "", in_stock: true, cover_image: null,
-  };
-}
-const CART = {
-  cart_id: "k",
-  items: [
-    { cart_item_id: "ci1", product: cartProduct(1), quantity_item: 2, unit_price_item: "50.00", shipping_type: null, shipping_value: "0.00", subtotal: "100.00" },
-    { cart_item_id: "ci2", product: cartProduct(2), quantity_item: 3, unit_price_item: "50.00", shipping_type: null, shipping_value: "0.00", subtotal: "150.00" },
-  ],
-  total_price: "250.00", total_shipping: "0.00", total_geral: "250.00",
-};
-
 let loggedIn = false;
 function mockApi(opts: { authed?: boolean } = {}) {
   loggedIn = !!opts.authed;
@@ -46,7 +31,32 @@ function mockApi(opts: { authed?: boolean } = {}) {
     if (path === "/auth/login") { loggedIn = true; return json(200, { access: "tok" }); }
     if (path === "/auth/me") return loggedIn ? json(200, ME) : json(401, { detail: "x" });
     if (path === "/categories/") return json(200, CATEGORIES);
-    if (path === "/cart/") return json(200, CART);
+    if (path === "/cart/")
+      return json(200, {
+        cart_id: "k",
+        items: [{
+      cart_item_id: "ci1",
+      product: {
+        product_id: "p1",
+        product_name: "Tapete de Crochê",
+        categories: [],
+        is_active: true,
+        price: "199.90",
+        stock: 10,
+        description: "",
+        in_stock: true,
+        cover_image: null,
+      },
+      quantity_item: 2,
+      unit_price_item: "199.90",
+      shipping_type: null,
+      shipping_value: "0",
+      subtotal: "399.80",
+    }],
+        total_price: "399.80",
+        total_shipping: "0",
+        total_geral: "399.80",
+      });
     if (path === "/notifications/unread-count") return json(200, { unread_count: 7 });
     if (path === "/auth/logout") return json(200, { detail: "ok" });
     return json(404, { detail: "nope" });
@@ -75,16 +85,32 @@ describe("app (jsdom, API simulada com os payloads reais)", () => {
     for (const label of ["Carrinho", "Notificações", "Chat com a loja", "Entrar ou cadastrar"]) expect(screen.getByLabelText(label)).toBeTruthy();
   });
 
-  it("menu Categorias busca na API só ao abrir e lista as categorias com link de filtro", async () => {
-    const calls = mockApi();
+  it("menu Categorias busca (100 por página) só ao abrir e lista as categorias com link de filtro", async () => {
+    const calls: string[] = [];
+    mockApi();
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init: RequestInit) => {
+      const u = new URL(String(url));
+      const path = u.pathname.replace("/api", "");
+      if (path === "/categories/") calls.push(u.searchParams.get("page_size") ?? "");
+      if (path === "/auth/refresh") return json(401, { detail: "x" });
+      if (path === "/categories/") return json(200, CATEGORIES);
+      void init;
+      return json(404, { detail: "nope" });
+    });
     await boot("/");
     await screen.findByRole("heading", { level: 1 });
-    expect(calls).not.toContain("GET /categories/");
+    expect(calls).not.toContain("100");
     await userEvent.click(screen.getByRole("button", { name: /Categorias/ }));
-    const link = await screen.findByRole("link", { name: /Crochê/ });
+    const panel = await waitFor(() => {
+      const el = document.getElementById("menu-categorias");
+      if (!el) throw new Error("painel fechado");
+      return el;
+    });
+    const link = await within(panel).findByRole("link", { name: /Crochê/ });
     expect(link.getAttribute("href")).toBe("/produtos?categoria=cat-1");
+    expect(calls).toContain("100");
     await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(screen.queryByRole("link", { name: /Crochê/ })).toBeNull());
+    await waitFor(() => expect(document.getElementById("menu-categorias")).toBeNull());
   });
 
   it("rota protegida sem sessão vai para /entrar?next=", async () => {
@@ -107,7 +133,7 @@ describe("app (jsdom, API simulada com os payloads reais)", () => {
     await userEvent.type(screen.getByLabelText("Senha"), "Abcdef123!zz");
     await userEvent.click(screen.getByRole("button", { name: "Entrar" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/carrinho"));
-    expect(await screen.findByLabelText("Carrinho (5)")).toBeTruthy();
+    expect(await screen.findByLabelText("Carrinho (2)")).toBeTruthy();
     expect(await screen.findByLabelText("Notificações (7)")).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Entrar / Cadastrar" })).toBeNull();
   });

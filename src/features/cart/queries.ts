@@ -3,8 +3,8 @@ import { cartApi } from "@/api/endpoints/cart";
 import { queryKeys } from "@/api/query-keys";
 import { useAuth } from "@/features/auth/auth-context";
 
-/** O carrinho vive no servidor e só existe para clientes logados. */
-function useCartEnabled(): boolean {
+/** O carrinho vive no servidor e só existe para clientes logados (não para contas administrativas). */
+export function useCartEnabled(): boolean {
   const { me } = useAuth();
   return me?.user.role === "client";
 }

@@ -15,14 +15,15 @@ export function useAddToCart() {
   });
 }
 
-/** Define a quantidade exata de um item já no carrinho (usado pelo estepe na página do carrinho). */
-export function useUpdateCartItem() {
+export function useUpdateCartItemQuantity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ cartItemId, quantityItem }: { cartItemId: string; quantityItem: number }) =>
-      cartApi.updateItem(cartItemId, { quantity_item: quantityItem }),
+    mutationFn: ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) =>
+      cartApi.updateItemQuantity(cartItemId, { quantity_item: quantity }),
     onSuccess: (cart) => queryClient.setQueryData(queryKeys.cart.all, cart),
+    // A própria linha do item mostra o erro (ex.: estoque insuficiente) — sem toast duplicado.
+    meta: { errorToast: false },
   });
 }
 
@@ -31,10 +32,7 @@ export function useRemoveCartItem() {
 
   return useMutation({
     mutationFn: (cartItemId: string) => cartApi.removeItem(cartItemId),
-    onSuccess: (cart) => {
-      queryClient.setQueryData(queryKeys.cart.all, cart);
-      toast.success("Item removido do carrinho.");
-    },
+    onSuccess: (cart) => queryClient.setQueryData(queryKeys.cart.all, cart),
   });
 }
 
@@ -42,7 +40,7 @@ export function useClearCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: cartApi.clear,
+    mutationFn: () => cartApi.clear(),
     onSuccess: (cart) => {
       queryClient.setQueryData(queryKeys.cart.all, cart);
       toast.success("Carrinho esvaziado.");
