@@ -6,9 +6,8 @@ export const ordersApi = {
 
   get: (orderId: string, signal?: AbortSignal) => http.get<OrderOut>(`/orders/${orderId}`, { signal }),
 
-  /** Faz o checkout do carrinho atual do cliente autenticado e cria o pedido. */
+  /** Faz o checkout do carrinho: cria o pedido, baixa o estoque e esvazia o carrinho. */
   create: (payload: OrderCreateIn) => http.post<OrderOut>("/orders/", payload),
 
-  cancel: (orderId: string, payload: OrderCancelIn | null = null) =>
-    http.post<OrderOut>(`/orders/${orderId}/cancel`, payload),
+  cancel: (orderId: string, payload?: OrderCancelIn) => http.post<OrderOut>(`/orders/${orderId}/cancel`, payload),
 };

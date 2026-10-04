@@ -51,3 +51,25 @@ export type CampaignImageOut = Schemas["CampaignImageOut"];
 // Contato
 export type ContactCreateIn = Schemas["ContactCreateIn"];
 export type ContactOut = Schemas["ContactOut"];
+
+// Pedidos
+export type OrderOut = Schemas["OrderOut"];
+export type OrderItemOut = Schemas["OrderItemOut"];
+export type OrderCreateIn = Schemas["OrderCreateIn"];
+export type OrderCancelIn = Schemas["OrderCancelIn"];
+export type OrderStatus = Schemas["StatusOrderEnum"];
+
+// Pagamentos (Asaas)
+export type PaymentOut = Schemas["PaymentOut"];
+export type PaymentCreateIn = Schemas["PaymentCreateIn"];
+export type PaymentBillingType = Schemas["PaymentBillingTypeEnum"];
+export type PaymentStatus = Schemas["PaymentStatusEnum"];
+export type CreditCardIn = Schemas["CreditCardIn"];
+export type CreditCardHolderInfoIn = Schemas["CreditCardHolderInfoIn"];
+
+// Endereços e perfil do cliente
+export type AddressOut = Schemas["AddressOut"];
+export type AddressCreateIn = Schemas["AddressCreateIn"];
+export type BrazilianState = Schemas["BrazilianStateEnum"];
+export type ClientUpdateIn = Schemas["ClientUpdateIn"];
+export type ClientOut = Schemas["ClientOut"];

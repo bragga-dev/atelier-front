@@ -1,17 +1,8 @@
-import { isApiError } from "../errors";
 import { http } from "../http";
 import type { AddressCreateIn, AddressOut } from "../types";
 
-export const addressApi = {
-  /** O backend responde 404 quando o cliente ainda não tem nenhum endereço — tratamos como lista vazia. */
-  list: async (signal?: AbortSignal): Promise<AddressOut[]> => {
-    try {
-      return await http.get<AddressOut[]>("/address/my-addresses", { signal });
-    } catch (error) {
-      if (isApiError(error) && error.status === 404) return [];
-      throw error;
-    }
-  },
+export const addressesApi = {
+  list: (signal?: AbortSignal) => http.get<AddressOut[]>("/address/my-addresses", { signal }),
 
   create: (payload: AddressCreateIn) => http.post<AddressOut>("/address/my-addresses", payload),
 };

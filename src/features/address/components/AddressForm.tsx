@@ -2,18 +2,24 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { AddressOut } from "@/api/types";
+import { isApiError } from "@/api/errors";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { applyApiErrors } from "@/features/auth/apply-api-errors";
-import { BRAZILIAN_STATES } from "@/lib/brazilian-states";
+import { BRAZILIAN_STATES } from "@/lib/br-states";
 import { formatCep } from "@/lib/mask";
 import { useCreateAddress } from "../mutations";
 import { addressSchema, type AddressFormValues } from "../schemas";
 
-export function AddressForm({ onCreated, onCancel }: { onCreated: (address: AddressOut) => void; onCancel?: () => void }) {
-  const createAddress = useCreateAddress();
+interface AddressFormProps {
+  onCreated: (address: AddressOut) => void;
+  onCancel?: () => void;
+}
+
+export function AddressForm({ onCreated, onCancel }: AddressFormProps) {
   const [formError, setFormError] = useState<string | null>(null);
+  const createAddress = useCreateAddress();
 
   const {
     register,
@@ -28,66 +34,86 @@ export function AddressForm({ onCreated, onCancel }: { onCreated: (address: Addr
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     try {
-      const address = await createAddress.mutateAsync(values);
-      onCreated(address);
+      const created = await createAddress.mutateAsync({
+        ...values,
+        cep: values.cep.replace(/\D/g, ""),
+        // Sem complemento, não enviamos o campo (o backend aceita ausente).
+        complement: values.complement || null,
+      });
+      onCreated(created);
     } catch (error) {
+      // O backend valida o CEP de verdade (consulta externa) e responde 400 com a frase do problema.
+      if (isApiError(error) && error.status === 400 && /cep/i.test(error.detail ?? "")) {
+        setError("cep", { type: "server", message: error.detail ?? "CEP inválido." });
+        return;
+      }
       setFormError(
         applyApiErrors(
           error,
           setError,
           ["cep", "street", "number", "complement", "neighborhood", "city", "state"],
-          "Não foi possível salvar o endereço. Tente novamente.",
+          "Não foi possível salvar o endereço.",
         ),
       );
     }
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-md border border-sand-200 bg-white p-4">
+    <form onSubmit={onSubmit} noValidate className="space-y-5">
       {formError && <Alert tone="error">{formError}</Alert>}
 
-      <TextField
-        label="CEP"
-        inputMode="numeric"
-        placeholder="00000-000"
-        maxLength={9}
-        error={errors.cep?.message}
-        {...register("cep", {
-          onChange: (event) => {
-            event.target.value = formatCep(event.target.value);
-          },
-        })}
-      />
-
-      <div className="grid grid-cols-[1fr_120px] gap-3">
-        <TextField label="Rua" error={errors.street?.message} {...register("street")} />
-        <TextField label="Número" error={errors.number?.message} {...register("number")} />
-      </div>
-
-      <TextField label="Complemento (opcional)" error={errors.complement?.message} {...register("complement")} />
-      <TextField label="Bairro" error={errors.neighborhood?.message} {...register("neighborhood")} />
-
-      <div className="grid grid-cols-[1fr_140px] gap-3">
-        <TextField label="Cidade" error={errors.city?.message} {...register("city")} />
-        <div>
-          <SelectField label="Estado" aria-invalid={errors.state ? true : undefined} {...register("state")}>
-            <option value="">UF</option>
+      <div className="grid gap-5 sm:grid-cols-6">
+        <div className="sm:col-span-2">
+          <TextField
+            label="CEP"
+            inputMode="numeric"
+            autoComplete="postal-code"
+            placeholder="00000-000"
+            maxLength={9}
+            error={errors.cep?.message}
+            {...register("cep", { onChange: (event) => (event.target.value = formatCep(event.target.value)) })}
+          />
+        </div>
+        <div className="sm:col-span-4">
+          <TextField label="Rua" autoComplete="address-line1" error={errors.street?.message} {...register("street")} />
+        </div>
+        <div className="sm:col-span-2">
+          <TextField label="Número" autoComplete="off" error={errors.number?.message} {...register("number")} />
+        </div>
+        <div className="sm:col-span-4">
+          <TextField label="Complemento (opcional)" autoComplete="address-line2" error={errors.complement?.message} {...register("complement")} />
+        </div>
+        <div className="sm:col-span-3">
+          <TextField label="Bairro" autoComplete="off" error={errors.neighborhood?.message} {...register("neighborhood")} />
+        </div>
+        <div className="sm:col-span-3">
+          <TextField label="Cidade" autoComplete="address-level2" error={errors.city?.message} {...register("city")} />
+        </div>
+        <div className="sm:col-span-3">
+          <SelectField label="Estado" defaultValue="" {...register("state")}>
+            <option value="" disabled>
+              Selecione
+            </option>
             {BRAZILIAN_STATES.map((state) => (
-              <option key={state.code} value={state.code}>
-                {state.code}
+              <option key={state.value} value={state.value}>
+                {state.label}
               </option>
             ))}
           </SelectField>
-          {errors.state && <p className="mt-1.5 text-sm font-medium text-red-700">{errors.state.message}</p>}
+          {errors.state && (
+            <p role="alert" className="mt-1.5 text-sm font-medium text-red-700">
+              {errors.state.message}
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="flex gap-3 pt-1">
+      <div className="flex gap-3">
         <Button type="submit" loading={createAddress.isPending}>
           Salvar endereço
         </Button>
         {onCancel && (
-          <Button type="button" variant="ghost" onClick={onCancel}>
+          <Button variant="ghost" onClick={onCancel} disabled={createAddress.isPending}>
             Cancelar
           </Button>
         )}

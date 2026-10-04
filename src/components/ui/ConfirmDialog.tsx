@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { Button } from "./Button";
 import type { ButtonVariant } from "./button-styles";
@@ -7,6 +7,8 @@ interface ConfirmDialogProps {
   open: boolean;
   title: string;
   description?: string;
+  /** Conteúdo extra entre a descrição e os botões (ex.: campo de motivo). */
+  children?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   confirmVariant?: ButtonVariant;
@@ -20,6 +22,7 @@ export function ConfirmDialog({
   open,
   title,
   description,
+  children,
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
   confirmVariant = "primary",
@@ -57,6 +60,7 @@ export function ConfirmDialog({
             {description}
           </p>
         )}
+        {children && <div className="mt-4">{children}</div>}
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="ghost" onClick={onCancel} disabled={loading}>
             {cancelLabel}

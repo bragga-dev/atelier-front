@@ -50,12 +50,14 @@ const pageRoutes: RouteObject[] = [
     element: <RequireAuth />,
     children: [
       { path: "carrinho", ...lazyPage(() => import("@/pages/CartPage")) },
-      { path: "checkout", ...soon("Checkout", "Fase 5 — Checkout e pedidos") },
+      { path: "checkout", ...lazyPage(() => import("@/pages/CheckoutPage")) },
       { path: "notificacoes", ...soon("Notificações", "Fase 6 — Conta") },
       { path: "chat", ...soon("Chat com a loja", "Fase 6 — Conta") },
       // O backend gera links de e-mail e notificações apontando para /painel/… — mantemos esse prefixo.
       { path: "painel", ...soon("Minha conta", "Fase 6 — Conta") },
-      { path: "painel/meus-pedidos", ...soon("Meus pedidos", "Fase 5 — Checkout e pedidos") },
+      { path: "painel/meus-pedidos", ...lazyPage(() => import("@/pages/OrdersPage")) },
+      { path: "painel/meus-pedidos/:orderId", ...lazyPage(() => import("@/pages/OrderDetailPage")) },
+      { path: "painel/meus-pedidos/:orderId/pagamento", ...lazyPage(() => import("@/pages/OrderPaymentPage")) },
     ],
   },
 

@@ -28,15 +28,14 @@ export const queryKeys = {
   cart: {
     all: ["cart"] as const,
   },
-  address: {
-    all: ["address"] as const,
-  },
   orders: {
     all: ["orders"] as const,
+    list: ["orders", "list"] as const,
     detail: (orderId: string) => ["orders", "detail", orderId] as const,
+    payments: (orderId: string) => ["orders", "detail", orderId, "payments"] as const,
   },
-  payments: {
-    forOrder: (orderId: string) => ["payments", "order", orderId] as const,
+  addresses: {
+    list: ["addresses", "list"] as const,
   },
   notifications: {
     unreadCount: ["notifications", "unread-count"] as const,
