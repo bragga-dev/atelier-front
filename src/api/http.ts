@@ -16,6 +16,8 @@ export interface RequestOptions {
    * não dispara refresh (é só "credenciais inválidas").
    */
   auth?: boolean;
+  /** `blob` = arquivo (ex.: exportação CSV/Excel). Padrão: JSON. */
+  responseType?: "json" | "blob";
 }
 
 function execute(path: string, options: RequestOptions, token: string | null): Promise<Response> {
@@ -72,6 +74,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   if (!response.ok) throw await apiErrorFromResponse(response);
+  if (options.responseType === "blob") return (await response.blob()) as T;
   return parseBody<T>(response);
 }
 
@@ -82,6 +85,6 @@ export const http = {
     request<T>(path, { ...options, method: "POST", body }),
   patch: <T>(path: string, body?: unknown, options: Omit<RequestOptions, "method" | "body"> = {}) =>
     request<T>(path, { ...options, method: "PATCH", body }),
-  delete: <T>(path: string, options: Omit<RequestOptions, "method" | "body"> = {}) =>
+  delete: <T>(path: string, options: Omit<RequestOptions, "method"> = {}) =>
     request<T>(path, { ...options, method: "DELETE" }),
 };

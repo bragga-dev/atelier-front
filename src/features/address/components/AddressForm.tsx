@@ -1,3 +1,4 @@
+// frontend/src/features/address/components/AddressForm.tsx
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -9,17 +10,21 @@ import { SelectField, TextField } from "@/components/ui/Field";
 import { applyApiErrors } from "@/features/auth/apply-api-errors";
 import { BRAZILIAN_STATES } from "@/lib/br-states";
 import { formatCep } from "@/lib/mask";
-import { useCreateAddress } from "../mutations";
+import { useCreateAddress, useUpdateAddress } from "../mutations";
 import { addressSchema, type AddressFormValues } from "../schemas";
 
 interface AddressFormProps {
   onCreated: (address: AddressOut) => void;
   onCancel?: () => void;
+  /** Se informado, o formulário edita este endereço (PATCH) em vez de criar um novo. */
+  address?: AddressOut;
 }
 
-export function AddressForm({ onCreated, onCancel }: AddressFormProps) {
+export function AddressForm({ onCreated, onCancel, address }: AddressFormProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const createAddress = useCreateAddress();
+  const updateAddress = useUpdateAddress(address?.address_id ?? "");
+  const saveAddress = address ? updateAddress : createAddress;
 
   const {
     register,
@@ -28,13 +33,23 @@ export function AddressForm({ onCreated, onCancel }: AddressFormProps) {
     formState: { errors },
   } = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema),
-    defaultValues: { cep: "", street: "", number: "", complement: "", neighborhood: "", city: "", state: undefined },
+    defaultValues: address
+      ? {
+          cep: formatCep(address.cep),
+          street: address.street,
+          number: address.number,
+          complement: address.complement ?? "",
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state,
+        }
+      : { cep: "", street: "", number: "", complement: "", neighborhood: "", city: "", state: undefined },
   });
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
     try {
-      const created = await createAddress.mutateAsync({
+      const created = await saveAddress.mutateAsync({
         ...values,
         cep: values.cep.replace(/\D/g, ""),
         // Sem complemento, não enviamos o campo (o backend aceita ausente).
@@ -109,11 +124,11 @@ export function AddressForm({ onCreated, onCancel }: AddressFormProps) {
       </div>
 
       <div className="flex gap-3">
-        <Button type="submit" loading={createAddress.isPending}>
+        <Button type="submit" loading={saveAddress.isPending}>
           Salvar endereço
         </Button>
         {onCancel && (
-          <Button variant="ghost" onClick={onCancel} disabled={createAddress.isPending}>
+          <Button variant="ghost" onClick={onCancel} disabled={saveAddress.isPending}>
             Cancelar
           </Button>
         )}

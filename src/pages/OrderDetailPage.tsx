@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useCartEnabled } from "@/features/cart/queries";
+import { OrderReviews } from "@/features/account/components/OrderReviews";
 import { OrderSummaryCard } from "@/features/orders/components/OrderSummaryCard";
 import { OrderStatusBadge } from "@/features/orders/components/StatusBadges";
 import { useCancelOrder } from "@/features/orders/mutations";
@@ -25,7 +26,7 @@ export default function OrderDetailPage() {
 
   if (!isClientAccount) {
     return (
-      <Container className="py-16">
+      <Container className="py-10">
         <EmptyState icon={<PackageX className="size-7" aria-hidden="true" />} title="Sem pedidos por aqui" description="Contas administrativas não fazem compras na loja." />
       </Container>
     );
@@ -33,7 +34,7 @@ export default function OrderDetailPage() {
 
   if (order.isPending) {
     return (
-      <Container className="py-8 sm:py-12">
+      <Container className="py-2 sm:py-4">
         <Skeleton className="mb-8 h-12 w-64" />
         <div className="grid gap-8 lg:grid-cols-[1fr_24rem]">
           <Skeleton className="h-64 rounded-[var(--radius-card)]" />
@@ -46,7 +47,7 @@ export default function OrderDetailPage() {
   if (order.isError) {
     if (isApiError(order.error) && order.error.status === 404) {
       return (
-        <Container className="py-16">
+        <Container className="py-10">
           <EmptyState
             icon={<PackageX className="size-7" aria-hidden="true" />}
             title="Pedido não encontrado"
@@ -60,7 +61,7 @@ export default function OrderDetailPage() {
       );
     }
     return (
-      <Container className="py-16">
+      <Container className="py-10">
         <ErrorState error={order.error} onRetry={() => void order.refetch()} retrying={order.isFetching} />
       </Container>
     );
@@ -71,7 +72,7 @@ export default function OrderDetailPage() {
   const canPay = data.order_status === "PENDING";
 
   return (
-    <Container className="py-8 sm:py-12">
+    <Container className="py-2 sm:py-4">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-ink-soft">Feito em {formatDate(data.created_at)}</p>
@@ -90,6 +91,15 @@ export default function OrderDetailPage() {
               </Link>
             </div>
           )}
+
+          {data.shipping_status !== "pending" && (
+            <div className="rounded-[var(--radius-card)] border border-sand-200 bg-white p-6">
+              <p className="font-semibold">Envio: {data.shipping_status_label}</p>
+              {data.shipping_tracking_code && <p className="mt-1 text-sm text-ink-soft">Código de rastreio: <span className="font-mono font-semibold text-ink">{data.shipping_tracking_code}</span></p>}
+            </div>
+          )}
+
+          <OrderReviews order={data} />
 
           {canCancel && (
             <Button variant="outline" onClick={() => setConfirmingCancel(true)}>

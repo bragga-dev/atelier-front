@@ -1,6 +1,7 @@
 import { http } from "../http";
 import type {
   AccessTokenOut,
+  GoogleLoginIn,
   LoginIn,
   MeOut,
   MessageOut,
@@ -14,6 +15,9 @@ export const authApi = {
 
   register: (payload: RegisterIn) =>
     http.post<AccessTokenOut>("/auth/register", payload, { auth: false }),
+
+  /** Login/cadastro via Google: o backend valida o `id_token` e, se preciso, cria a conta já verificada. */
+  google: (payload: GoogleLoginIn) => http.post<AccessTokenOut>("/auth/google", payload, { auth: false }),
 
   me: (signal?: AbortSignal) => http.get<MeOut>("/auth/me", { signal }),
 

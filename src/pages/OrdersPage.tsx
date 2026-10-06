@@ -14,7 +14,7 @@ export default function OrdersPage() {
   const orders = useOrders();
 
   return (
-    <Container className="py-8 sm:py-12">
+    <Container className="py-2 sm:py-4">
       <h1 className="mb-8 text-4xl font-semibold sm:text-5xl">Meus pedidos</h1>
 
       {!isClientAccount ? (

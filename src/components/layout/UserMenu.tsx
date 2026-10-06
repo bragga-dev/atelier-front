@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { LogOut, Package, User, UserRound } from "lucide-react";
+import { LayoutDashboard, LogOut, MessageCircle, Package, User, UserRound } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useAuth } from "@/features/auth/auth-context";
 import { useDismissable } from "@/hooks/use-dismissable";
 import { cn } from "@/lib/cn";
 import { buttonStyles } from "@/components/ui/button-styles";
 import { Button } from "@/components/ui/Button";
-import { displayName } from "@/features/auth/display-name";
+import { Avatar } from "@/components/ui/Avatar";
+import { displayName, fullName, isAdminUser, userPhotoUrl } from "@/features/auth/display-name";
 
 const PANEL_ID = "menu-usuario";
 
@@ -43,7 +44,11 @@ export function UserMenu({ className }: { className?: string }) {
         onClick={() => setOpen((current) => !current)}
         className="grid size-11 place-items-center rounded-full text-ink transition-colors hover:bg-espresso/5"
       >
-        <User className="size-6" aria-hidden="true" />
+        {isAuthenticated && me ? (
+          <Avatar src={userPhotoUrl(me)} name={fullName(me)} size="md" />
+        ) : (
+          <User className="size-6" aria-hidden="true" />
+        )}
       </button>
 
       {open && (
@@ -55,19 +60,35 @@ export function UserMenu({ className }: { className?: string }) {
             <p className="px-3 py-2 text-sm text-ink-soft">Carregando…</p>
           ) : isAuthenticated && me ? (
             <>
-              <div className="border-b border-sand-200 px-3 pb-3 pt-2">
-                <p className="truncate font-semibold">{displayName(me)}</p>
-                <p className="truncate text-sm text-ink-soft">{me.user.email}</p>
+              <div className="flex items-center gap-3 border-b border-sand-200 px-3 pb-3 pt-2">
+                <Avatar src={userPhotoUrl(me)} name={fullName(me)} size="md" />
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{displayName(me)}</p>
+                  <p className="truncate text-sm text-ink-soft">{me.user.email}</p>
+                </div>
               </div>
               <nav aria-label="Minha conta" className="py-2">
-                <Link to="/painel" className={ITEM_CLASS}>
-                  <UserRound className="size-5 text-ink-soft" aria-hidden="true" />
-                  Minha conta
-                </Link>
-                <Link to="/painel/meus-pedidos" className={ITEM_CLASS}>
-                  <Package className="size-5 text-ink-soft" aria-hidden="true" />
-                  Meus pedidos
-                </Link>
+                {isAdminUser(me) ? (
+                  <Link to="/admin" className={ITEM_CLASS}>
+                    <LayoutDashboard className="size-5 text-ink-soft" aria-hidden="true" />
+                    Painel administrativo
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/painel" className={ITEM_CLASS}>
+                      <UserRound className="size-5 text-ink-soft" aria-hidden="true" />
+                      Minha conta
+                    </Link>
+                    <Link to="/painel/meus-pedidos" className={ITEM_CLASS}>
+                      <Package className="size-5 text-ink-soft" aria-hidden="true" />
+                      Meus pedidos
+                    </Link>
+                    <Link to="/chat" className={ITEM_CLASS}>
+                      <MessageCircle className="size-5 text-ink-soft" aria-hidden="true" />
+                      Chat com a loja
+                    </Link>
+                  </>
+                )}
               </nav>
               <Button variant="ghost" fullWidth className="justify-start rounded-md" onClick={handleLogout} loading={loggingOut}>
                 <LogOut className="size-5 text-ink-soft" aria-hidden="true" />

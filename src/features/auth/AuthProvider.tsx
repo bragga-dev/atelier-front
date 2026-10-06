@@ -76,6 +76,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient],
   );
 
+  const loginWithGoogle = useCallback<AuthContextValue["loginWithGoogle"]>(
+    async (idToken) => {
+      const { access } = await authApi.google({ id_token: idToken });
+      tokenStore.set(access);
+      let me: MeOut;
+      try {
+        me = await authApi.me();
+      } catch (error) {
+        tokenStore.clear();
+        throw error;
+      }
+      queryClient.clear();
+      setState({ status: "authenticated", me });
+    },
+    [queryClient],
+  );
+
   const logout = useCallback<AuthContextValue["logout"]>(async () => {
     try {
       await authApi.logout(); // blacklista o refresh e limpa o cookie
@@ -97,10 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       me: state.me,
       isAuthenticated: state.status === "authenticated",
       login,
+      loginWithGoogle,
       logout,
       refreshMe,
     }),
-    [state, login, logout, refreshMe],
+    [state, login, loginWithGoogle, logout, refreshMe],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

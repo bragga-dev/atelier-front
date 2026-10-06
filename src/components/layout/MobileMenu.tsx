@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
-import { Bell, ChevronDown, LogOut, MessageCircle, Package, UserRound, X } from "lucide-react";
+import { Bell, ChevronDown, LayoutDashboard, LogOut, MessageCircle, Package, UserRound, X } from "lucide-react";
 import { Link, NavLink } from "react-router";
 import { useAuth } from "@/features/auth/auth-context";
-import { displayName } from "@/features/auth/display-name";
+import { Avatar } from "@/components/ui/Avatar";
+import { displayName, fullName, isAdminUser, userPhotoUrl } from "@/features/auth/display-name";
 import { useCategories } from "@/features/categories/queries";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { cn } from "@/lib/cn";
@@ -141,16 +142,30 @@ function MobileMenuPanel({ onClose }: { onClose: () => void }) {
         <div className="mt-auto pt-6">
           {status === "loading" ? null : isAuthenticated && me ? (
             <div className="space-y-1 rounded-md bg-white p-3">
-              <p className="truncate px-3 pt-1 font-semibold">{displayName(me)}</p>
-              <p className="truncate px-3 pb-2 text-sm text-ink-soft">{me.user.email}</p>
-              <Link to="/painel" onClick={onClose} className={ROW_CLASS}>
-                <UserRound className="size-5 text-ink-soft" aria-hidden="true" />
-                Minha conta
-              </Link>
-              <Link to="/painel/meus-pedidos" onClick={onClose} className={ROW_CLASS}>
-                <Package className="size-5 text-ink-soft" aria-hidden="true" />
-                Meus pedidos
-              </Link>
+              <div className="flex items-center gap-3 px-3 pb-2 pt-1">
+                <Avatar src={userPhotoUrl(me)} name={fullName(me)} size="md" />
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{displayName(me)}</p>
+                  <p className="truncate text-sm text-ink-soft">{me.user.email}</p>
+                </div>
+              </div>
+              {isAdminUser(me) ? (
+                <Link to="/admin" onClick={onClose} className={ROW_CLASS}>
+                  <LayoutDashboard className="size-5 text-ink-soft" aria-hidden="true" />
+                  Painel administrativo
+                </Link>
+              ) : (
+                <>
+                  <Link to="/painel" onClick={onClose} className={ROW_CLASS}>
+                    <UserRound className="size-5 text-ink-soft" aria-hidden="true" />
+                    Minha conta
+                  </Link>
+                  <Link to="/painel/meus-pedidos" onClick={onClose} className={ROW_CLASS}>
+                    <Package className="size-5 text-ink-soft" aria-hidden="true" />
+                    Meus pedidos
+                  </Link>
+                </>
+              )}
               <Button variant="ghost" className={cn(ROW_CLASS, "rounded-md")} onClick={handleLogout} loading={loggingOut}>
                 <LogOut className="size-5 text-ink-soft" aria-hidden="true" />
                 Sair

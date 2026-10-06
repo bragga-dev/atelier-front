@@ -1,26 +1,11 @@
+// frontend/src/features/checkout/mutations.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addressesApi } from "@/api/endpoints/addresses";
 import { ordersApi } from "@/api/endpoints/orders";
 import { profileApi } from "@/api/endpoints/profile";
 import { queryKeys } from "@/api/query-keys";
-import type { AddressOut } from "@/api/types";
 import { useAuth } from "@/features/auth/auth-context";
 
-export function useCreateAddress() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: addressesApi.create,
-    onSuccess: (created) => {
-      // O backend torna o novo endereço o preferencial (e desmarca os outros) — reflete no cache.
-      queryClient.setQueryData<AddressOut[]>(queryKeys.addresses.list, (current = []) => [
-        created,
-        ...current.map((address) => ({ ...address, is_preferential: false })),
-      ]);
-    },
-    meta: { errorToast: false },
-  });
-}
+export { useCreateAddress } from "@/features/address/mutations";
 
 export function useUpdateClientProfile() {
   const { refreshMe } = useAuth();

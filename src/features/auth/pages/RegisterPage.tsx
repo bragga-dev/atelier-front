@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { PasswordField, TextField } from "@/components/ui/Field";
 import { applyApiErrors } from "../apply-api-errors";
 import { AuthShell } from "../components/AuthShell";
+import { GoogleSignInButton, OrDivider } from "../components/GoogleSignInButton";
+import { env } from "@/lib/env";
 import { registerSchema, type RegisterFormValues } from "../schemas";
 
 export default function RegisterPage() {
@@ -97,6 +99,13 @@ export default function RegisterPage() {
           Criar conta
         </Button>
       </form>
+
+      {env.googleClientId && (
+        <>
+          <OrDivider />
+          <GoogleSignInButton text="signup_with" onError={setFormError} />
+        </>
+      )}
     </AuthShell>
   );
 }

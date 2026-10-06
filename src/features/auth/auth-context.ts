@@ -9,6 +9,8 @@ export interface AuthContextValue {
   me: MeOut | null;
   isAuthenticated: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
+  /** Login com Google: recebe o `credential` (ID token) emitido pelo Google Identity Services. */
+  loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   /** Recarrega `/auth/me` (ex.: depois de editar o perfil). */
   refreshMe: () => Promise<void>;

@@ -724,6 +724,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/shipping/webhooks/frenet/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Webhook Frenet — atualização de status do envio */
+        post: operations["atelier_apps_payments_api_frenet_webhook_frenet_status_webhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shipping/webhooks/frenet/tracking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Webhook Frenet — atualização de tracking */
+        post: operations["atelier_apps_payments_api_frenet_webhook_frenet_tracking_webhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/shipping/quote/{product_id}": {
         parameters: {
             query?: never;
@@ -821,6 +855,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/admin/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [Admin] Lista todos os pedidos (paginado, filtrável por status e busca) */
+        get: operations["atelier_apps_payments_api_orders_admin_list_orders_router"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/admin/{order_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [Admin] Detalhe de qualquer pedido */
+        get: operations["atelier_apps_payments_api_orders_admin_get_order_router"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/{order_id}": {
         parameters: {
             query?: never;
@@ -849,6 +917,23 @@ export interface paths {
         put?: never;
         /** Cancela um pedido pendente e devolve o estoque */
         post: operations["atelier_apps_payments_api_orders_cancel_order_router"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/{order_id}/generate-label": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gera (e paga com o saldo da carteira) a etiqueta de envio na Frenet — uso administrativo */
+        post: operations["atelier_apps_payments_api_orders_generate_label"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2258,6 +2343,26 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** FrenetStatusWebhookIn */
+        FrenetStatusWebhookIn: {
+            /** Orderid */
+            OrderId: string;
+            /** Shipmentid */
+            ShipmentId: number;
+            /** Shipmentstatus */
+            ShipmentStatus: number;
+        };
+        /** FrenetTrackingWebhookIn */
+        FrenetTrackingWebhookIn: {
+            /** Orderid */
+            OrderId: string;
+            /** Shipmentid */
+            ShipmentId: number;
+            /** Trackingurl */
+            TrackingUrl?: string | null;
+            /** Trackingnumber */
+            TrackingNumber?: string | null;
+        };
         /**
          * FrenetShippingOptionOut
          * @description Uma opção de frete retornada pela Frenet (uma transportadora/serviço).
@@ -2384,6 +2489,22 @@ export interface components {
              * Format: uuid
              */
             shipping_address_id: string;
+            /** Shipping Service Code */
+            shipping_service_code?: string | null;
+            /**
+             * Shipping Status
+             * @default pending
+             */
+            shipping_status: string;
+            /**
+             * Shipping Status Label
+             * @default
+             */
+            shipping_status_label: string;
+            /** Shipping Tracking Code */
+            shipping_tracking_code?: string | null;
+            /** Shipped At */
+            shipped_at?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -2414,6 +2535,88 @@ export interface components {
              * Format: uuid
              */
             shipping_address_id: string;
+            /** Shipping Service Code */
+            shipping_service_code?: string | null;
+        };
+        /**
+         * AdminOrderOut
+         * @description Visão administrativa: inclui quem comprou, para onde vai e o estado da etiqueta.
+         */
+        AdminOrderOut: {
+            /**
+             * Order Id
+             * Format: uuid
+             */
+            order_id: string;
+            /** Code */
+            code: string;
+            order_status: components["schemas"]["StatusOrderEnum"];
+            /** Order Status Label */
+            order_status_label: string;
+            /** Items */
+            items?: components["schemas"]["OrderItemOut"][];
+            /** Subtotal */
+            subtotal: string;
+            /** Order Shipping Total */
+            order_shipping_total: string;
+            /** Total Geral */
+            total_geral: string;
+            /**
+             * Shipping Address Id
+             * Format: uuid
+             */
+            shipping_address_id: string;
+            /** Shipping Service Code */
+            shipping_service_code?: string | null;
+            /**
+             * Shipping Status
+             * @default pending
+             */
+            shipping_status: string;
+            /**
+             * Shipping Status Label
+             * @default
+             */
+            shipping_status_label: string;
+            /** Shipping Tracking Code */
+            shipping_tracking_code?: string | null;
+            /** Shipped At */
+            shipped_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Customer Name */
+            customer_name: string;
+            /** Customer Email */
+            customer_email: string;
+            /** Shipping Address Summary */
+            shipping_address_summary: string;
+            /** Frenet Order Id */
+            frenet_order_id?: string | null;
+            /** Shipping Label Url */
+            shipping_label_url?: string | null;
+            /** Completed At */
+            completed_at?: string | null;
+        };
+        /** PageOut[AdminOrderOut] */
+        PageOut_AdminOrderOut_: {
+            /** Items */
+            items: components["schemas"]["AdminOrderOut"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Pages */
+            pages: number;
         };
         /** OrderCancelIn */
         OrderCancelIn: {
@@ -3023,6 +3226,40 @@ export interface components {
             file_size: number;
             /** Url */
             url: string;
+        };
+        /** ChatMessageOut */
+        ChatMessageOut: {
+            /**
+             * Message Id
+             * Format: uuid
+             */
+            message_id: string;
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /**
+             * Sender Id
+             * Format: uuid
+             */
+            sender_id: string;
+            /** Sender Name */
+            sender_name: string;
+            /** Content */
+            content: string;
+            /** Is Read */
+            is_read: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Attachments
+             * @default []
+             */
+            attachments: components["schemas"]["AttachmentOut"][];
         };
     };
     responses: never;
@@ -4592,6 +4829,90 @@ export interface operations {
             };
         };
     };
+    atelier_apps_payments_api_frenet_webhook_frenet_status_webhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FrenetStatusWebhookIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+        };
+    };
+    atelier_apps_payments_api_frenet_webhook_frenet_tracking_webhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FrenetTrackingWebhookIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+        };
+    };
     atelier_apps_products_api_frenet_quote_shipping_router: {
         parameters: {
             query?: never;
@@ -4918,6 +5239,62 @@ export interface operations {
             };
         };
     };
+    atelier_apps_payments_api_orders_admin_list_orders_router: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                search?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageOut_AdminOrderOut_"];
+                };
+            };
+        };
+    };
+    atelier_apps_payments_api_orders_admin_get_order_router: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOrderOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+        };
+    };
     atelier_apps_payments_api_orders_get_order_router: {
         parameters: {
             query?: never;
@@ -4984,6 +5361,57 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+        };
+    };
+    atelier_apps_payments_api_orders_generate_label: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7199,7 +7627,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageOut"][];
+                    "application/json": components["schemas"]["ChatMessageOut"][];
                 };
             };
             /** @description Forbidden */
@@ -7251,7 +7679,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageOut"];
+                    "application/json": components["schemas"]["ChatMessageOut"];
                 };
             };
             /** @description Bad Request */

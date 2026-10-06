@@ -2,9 +2,11 @@ import type { ComponentType } from "react";
 import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
 import { GuestOnly } from "@/features/auth/GuestOnly";
 import { RequireAuth } from "@/features/auth/RequireAuth";
+import { RequireAdmin, RequireClient } from "@/features/auth/RequireRole";
+import { AdminPanelLayout } from "@/features/admin/AdminPanelLayout";
+import { ClientPanelLayout } from "@/features/account/ClientPanelLayout";
 import { RootLayout } from "@/components/layout/RootLayout";
 import { PageSpinner } from "@/components/ui/Spinner";
-import ComingSoonPage from "@/pages/ComingSoonPage";
 import RouteErrorPage from "@/pages/RouteErrorPage";
 
 /** Code splitting por rota: cada página vira um chunk carregado sob demanda. */
@@ -13,10 +15,6 @@ function lazyPage(load: () => Promise<{ default: ComponentType }>): Pick<RouteOb
     lazy: async () => ({ Component: (await load()).default }),
   };
 }
-
-const soon = (title: string, phase: string) => ({
-  element: <ComingSoonPage title={title} phase={phase} />,
-});
 
 /** Fábrica (e não singleton) para permitir criar um router novo por teste/montagem. */
 export function createAppRouter() {
@@ -49,15 +47,62 @@ const pageRoutes: RouteObject[] = [
   {
     element: <RequireAuth />,
     children: [
+      // Carrinho e checkout: as próprias páginas explicam o caso "conta administrativa".
       { path: "carrinho", ...lazyPage(() => import("@/pages/CartPage")) },
       { path: "checkout", ...lazyPage(() => import("@/pages/CheckoutPage")) },
-      { path: "notificacoes", ...soon("Notificações", "Fase 6 — Conta") },
-      { path: "chat", ...soon("Chat com a loja", "Fase 6 — Conta") },
-      // O backend gera links de e-mail e notificações apontando para /painel/… — mantemos esse prefixo.
-      { path: "painel", ...soon("Minha conta", "Fase 6 — Conta") },
-      { path: "painel/meus-pedidos", ...lazyPage(() => import("@/pages/OrdersPage")) },
-      { path: "painel/meus-pedidos/:orderId", ...lazyPage(() => import("@/pages/OrderDetailPage")) },
-      { path: "painel/meus-pedidos/:orderId/pagamento", ...lazyPage(() => import("@/pages/OrderPaymentPage")) },
+
+      // Cliente: o painel "Minha conta".
+      {
+        element: <RequireClient />,
+        children: [
+          // Atalhos antigos do header e das notificações → painel.
+          { path: "notificacoes", element: <Navigate to="/painel/notificacoes" replace /> },
+          { path: "chat", element: <Navigate to="/painel/chat" replace /> },
+          // O backend gera links de e-mail e notificações apontando para /painel/… — mantemos esse prefixo.
+          {
+            path: "painel",
+            element: <ClientPanelLayout />,
+            children: [
+              { index: true, ...lazyPage(() => import("@/features/account/pages/OverviewPage")) },
+              { path: "meus-pedidos", ...lazyPage(() => import("@/pages/OrdersPage")) },
+              { path: "meus-pedidos/:orderId", ...lazyPage(() => import("@/pages/OrderDetailPage")) },
+              { path: "meus-pedidos/:orderId/pagamento", ...lazyPage(() => import("@/pages/OrderPaymentPage")) },
+              { path: "perfil", ...lazyPage(() => import("@/features/account/pages/ProfilePage")) },
+              { path: "enderecos", ...lazyPage(() => import("@/features/account/pages/AddressesPage")) },
+              { path: "avaliacoes", ...lazyPage(() => import("@/features/account/pages/MyReviewsPage")) },
+              { path: "notificacoes", ...lazyPage(() => import("@/features/account/pages/NotificationsPage")) },
+              { path: "chat", ...lazyPage(() => import("@/features/chat/pages/ClientChatPage")) },
+              { path: "seguranca", ...lazyPage(() => import("@/features/account/pages/SecurityPage")) },
+            ],
+          },
+        ],
+      },
+
+      // Administrador.
+      {
+        element: <RequireAdmin />,
+        children: [
+          {
+            path: "admin",
+            element: <AdminPanelLayout />,
+            children: [
+              { index: true, ...lazyPage(() => import("@/features/admin/pages/DashboardPage")) },
+              { path: "pedidos", ...lazyPage(() => import("@/features/admin/pages/AdminOrdersPage")) },
+              { path: "pedidos/:orderId", ...lazyPage(() => import("@/features/admin/pages/AdminOrderDetailPage")) },
+              { path: "produtos", ...lazyPage(() => import("@/features/admin/pages/AdminProductsPage")) },
+              { path: "produtos/novo", ...lazyPage(() => import("@/features/admin/pages/AdminProductFormPage")) },
+              { path: "produtos/:productId", ...lazyPage(() => import("@/features/admin/pages/AdminProductFormPage")) },
+              { path: "categorias", ...lazyPage(() => import("@/features/admin/pages/AdminCategoriesPage")) },
+              { path: "campanhas", ...lazyPage(() => import("@/features/admin/pages/AdminCampaignsPage")) },
+              { path: "avaliacoes", ...lazyPage(() => import("@/features/admin/pages/AdminReviewsPage")) },
+              { path: "chat", ...lazyPage(() => import("@/features/chat/pages/AdminChatPage")) },
+              { path: "contatos", ...lazyPage(() => import("@/features/admin/pages/AdminContactsPage")) },
+              { path: "usuarios", ...lazyPage(() => import("@/features/admin/pages/AdminUsersPage")) },
+              { path: "perfil", ...lazyPage(() => import("@/features/account/pages/ProfilePage")) },
+            ],
+          },
+        ],
+      },
     ],
   },
 

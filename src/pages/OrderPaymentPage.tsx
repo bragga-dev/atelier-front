@@ -39,7 +39,7 @@ export default function OrderPaymentPage() {
 
   if (!isClientAccount) {
     return (
-      <Container className="py-16">
+      <Container className="py-10">
         <EmptyState icon={<PackageX className="size-7" aria-hidden="true" />} title="Sem pagamento por aqui" description="Contas administrativas não fazem compras na loja." />
       </Container>
     );
@@ -47,7 +47,7 @@ export default function OrderPaymentPage() {
 
   if (order.isPending || payments.isPending) {
     return (
-      <Container className="py-8 sm:py-12">
+      <Container className="py-2 sm:py-4">
         <Skeleton className="mb-8 h-12 w-64" />
         <div className="grid gap-8 lg:grid-cols-[1fr_24rem]">
           <Skeleton className="h-80 rounded-[var(--radius-card)]" />
@@ -60,7 +60,7 @@ export default function OrderPaymentPage() {
   if (order.isError) {
     if (isApiError(order.error) && order.error.status === 404) {
       return (
-        <Container className="py-16">
+        <Container className="py-10">
           <EmptyState
             icon={<PackageX className="size-7" aria-hidden="true" />}
             title="Pedido não encontrado"
@@ -74,7 +74,7 @@ export default function OrderPaymentPage() {
       );
     }
     return (
-      <Container className="py-16">
+      <Container className="py-10">
         <ErrorState error={order.error} onRetry={() => void order.refetch()} retrying={order.isFetching} />
       </Container>
     );
@@ -96,7 +96,7 @@ export default function OrderPaymentPage() {
   };
 
   return (
-    <Container className="py-8 sm:py-12">
+    <Container className="py-2 sm:py-4">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm text-ink-soft">Pedido {data.code}</p>

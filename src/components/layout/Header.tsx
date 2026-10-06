@@ -74,6 +74,7 @@ export function Header() {
 
             <HeaderIconLink to="/carrinho" label="Carrinho" icon={ShoppingCart} badge={cartCount} />
             <HeaderIconLink to="/notificacoes" label="Notificações" icon={Bell} badge={unreadCount} />
+            <HeaderIconLink to="/chat" label="Chat com a loja" icon={MessageCircle} />
             <UserMenu className="hidden sm:block" />
 
             <button

@@ -10,6 +10,7 @@ type Schemas = components["schemas"];
 export type LoginIn = Schemas["LoginIn"];
 export type RegisterIn = Schemas["RegisterIn"];
 export type AccessTokenOut = Schemas["AccessTokenOut"];
+export type GoogleLoginIn = Schemas["GoogleLoginIn"];
 export type PasswordResetRequestIn = Schemas["PasswordResetRequestIn"];
 export type PasswordResetConfirmIn = Schemas["PasswordResetConfirmIn"];
 export type MessageOut = Schemas["MessageOut"];
@@ -70,6 +71,44 @@ export type CreditCardHolderInfoIn = Schemas["CreditCardHolderInfoIn"];
 // Endereços e perfil do cliente
 export type AddressOut = Schemas["AddressOut"];
 export type AddressCreateIn = Schemas["AddressCreateIn"];
+export type AddressUpdateIn = Schemas["AddressUpdateIn"];
 export type BrazilianState = Schemas["BrazilianStateEnum"];
 export type ClientUpdateIn = Schemas["ClientUpdateIn"];
 export type ClientOut = Schemas["ClientOut"];
+
+// Conta (cliente e admin)
+export type AdminProfileOut = Schemas["AdminProfileOut"];
+export type AdminProfileUpdateIn = Schemas["AdminProfileUpdateIn"];
+export type ChangePasswordIn = Schemas["ChangePasswordIn"];
+export type DeleteAccountIn = Schemas["DeleteAccountIn"];
+export type SessionOut = Schemas["SessionOut"];
+
+// Notificações
+export type NotificationOut = Schemas["NotificationOut"];
+export type NotificationPage = Schemas["PageOut_NotificationOut_"];
+
+// Avaliações (visão do dono e do admin)
+export type ReviewPrivateOut = Schemas["ReviewsPrivateOut"];
+export type ReviewUpdateIn = Schemas["ReviewsUpdateIn"];
+export type ReviewCreateIn = Schemas["ReviewsCreateIn"];
+
+// Chat
+export type ConversationOut = Schemas["ConversationOut"];
+export type ChatMessageOut = Schemas["ChatMessageOut"];
+export type ChatAttachmentOut = Schemas["AttachmentOut"];
+
+// Admin
+export type AdminOrderOut = Schemas["AdminOrderOut"];
+export type AdminOrderPage = Schemas["PageOut_AdminOrderOut_"];
+export type DashboardSummaryOut = Schemas["DashboardSummaryOut"];
+export type UserAdminOut = Schemas["UserAdminOut"];
+export type UserAdminPage = Schemas["PageOut_UserAdminOut_"];
+export type ProductCreateIn = Schemas["ProductCreateIn"];
+export type ProductUpdateIn = Schemas["ProductUpdateIn"];
+export type CategoryCreateIn = Schemas["ProductCategoryCreateIn"];
+export type CategoryUpdateIn = Schemas["ProductCategoryUpdateIn"];
+export type CampaignCreateIn = Schemas["CampaignCreateIn"];
+export type CampaignUpdateIn = Schemas["CampaignUpdateIn"];
+export type CampaignPage = Schemas["PageOut_CampaignOut_"];
+export type ContactPage = Schemas["PageOut_ContactOut_"];
+export type ContactStatus = Schemas["ContactStatusEnum"];

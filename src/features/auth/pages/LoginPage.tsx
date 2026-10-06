@@ -9,7 +9,9 @@ import { PasswordField, TextField } from "@/components/ui/Field";
 import { useAuth } from "../auth-context";
 import { applyApiErrors } from "../apply-api-errors";
 import { AuthShell } from "../components/AuthShell";
+import { GoogleSignInButton, OrDivider } from "../components/GoogleSignInButton";
 import { ResendVerification } from "../components/ResendVerification";
+import { env } from "@/lib/env";
 import { loginSchema, type LoginFormValues } from "../schemas";
 
 export default function LoginPage() {
@@ -101,6 +103,13 @@ export default function LoginPage() {
           Entrar
         </Button>
       </form>
+
+      {env.googleClientId && (
+        <>
+          <OrDivider />
+          <GoogleSignInButton text="signin_with" onError={setFormError} />
+        </>
+      )}
     </AuthShell>
   );
 }
