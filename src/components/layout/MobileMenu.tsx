@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Bell, ChevronDown, LayoutDashboard, LogOut, MessageCircle, Package, UserRound, X } from "lucide-react";
 import { Link, NavLink } from "react-router";
 import { useAuth } from "@/features/auth/auth-context";
+import { useLogout } from "@/features/auth/use-logout";
 import { Avatar } from "@/components/ui/Avatar";
 import { displayName, fullName, isAdminUser, userPhotoUrl } from "@/features/auth/display-name";
 import { useCategories } from "@/features/categories/queries";
@@ -28,7 +29,8 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
 
 function MobileMenuPanel({ onClose }: { onClose: () => void }) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const { me, isAuthenticated, status, logout } = useAuth();
+  const { me, isAuthenticated, status } = useAuth();
+  const logout = useLogout();
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const categories = useCategories({ enabled: categoriesOpen });

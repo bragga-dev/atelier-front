@@ -7,6 +7,7 @@ import { queryKeys } from "@/api/query-keys";
 import type { ReviewUpdateIn } from "@/api/types";
 import { tokenStore } from "@/api/token-store";
 import { useAuth } from "@/features/auth/auth-context";
+import { useLogout } from "@/features/auth/use-logout";
 import { isAdminUser } from "@/features/auth/display-name";
 import { toast } from "@/lib/toast";
 
@@ -81,7 +82,7 @@ export function useRevokeSession() {
 }
 
 export function useLogoutAll() {
-  const { logout } = useAuth();
+  const logout = useLogout();
   return useMutation({
     mutationFn: accountApi.logoutAll,
     onSuccess: () => logout(),
@@ -89,7 +90,7 @@ export function useLogoutAll() {
 }
 
 export function useDeleteAccount() {
-  const { logout } = useAuth();
+  const logout = useLogout();
   return useMutation({
     mutationFn: accountApi.deleteAccount,
     onSuccess: () => logout(),

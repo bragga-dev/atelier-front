@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { LayoutDashboard, LogOut, MessageCircle, Package, User, UserRound } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useAuth } from "@/features/auth/auth-context";
+import { useLogout } from "@/features/auth/use-logout";
 import { useDismissable } from "@/hooks/use-dismissable";
 import { cn } from "@/lib/cn";
 import { buttonStyles } from "@/components/ui/button-styles";
@@ -14,7 +15,8 @@ const PANEL_ID = "menu-usuario";
 const ITEM_CLASS = "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left font-medium hover:bg-espresso/5";
 
 export function UserMenu({ className }: { className?: string }) {
-  const { me, isAuthenticated, status, logout } = useAuth();
+  const { me, isAuthenticated, status } = useAuth();
+  const logout = useLogout();
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
