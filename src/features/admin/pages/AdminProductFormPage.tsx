@@ -19,7 +19,7 @@ import { useAdminCategories, useAdminProduct, useCreateProductFull, useProductAc
 import { productCreateSchema, productSchema, toDecimal, type ProductFormValues } from "../schemas";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 
 function validateImages(files: File[]): string | null {
   for (const f of files) {

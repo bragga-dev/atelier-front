@@ -125,7 +125,7 @@ function MobileMenuPanel({ onClose }: { onClose: () => void }) {
         <div className="mt-6 border-t border-sand-200 pt-4">
           <ul className="space-y-1">
             <li>
-              <Link to="/chat" onClick={onClose} className={ROW_CLASS}>
+              <Link to={isAdminUser(me) ? "/admin/chat" : "/chat"} onClick={onClose} className={ROW_CLASS}>
                 <MessageCircle className="size-5 text-ink-soft" aria-hidden="true" />
                 Chat
               </Link>
