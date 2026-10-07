@@ -155,7 +155,8 @@ export const adminCategoriesApi = {
 
 export const adminCampaignsApi = {
   list: (params: { page?: number; pageSize?: number } = {}, signal?: AbortSignal) =>
-    http.get<CampaignPage>("/campaigns/", { signal, query: { page: params.page ?? 1, page_size: params.pageSize ?? 50 } }),
+    // O backend lista só campanhas ativas por padrão (`active_only=true`): o admin precisa ver todas.
+    http.get<CampaignPage>("/campaigns/", { signal, query: { page: params.page ?? 1, page_size: params.pageSize ?? 50, active_only: false } }),
   create: (payload: CampaignCreateIn) => http.post<CampaignOut>("/campaigns/", payload),
   update: (campaignId: string, payload: CampaignUpdateIn) => http.patch<CampaignOut>(`/campaigns/${campaignId}`, payload),
   remove: (campaignId: string) => http.delete<MessageOut>(`/campaigns/${campaignId}`),
@@ -163,10 +164,11 @@ export const adminCampaignsApi = {
   deactivate: (campaignId: string) => http.post<CampaignOut>(`/campaigns/${campaignId}/deactivate`),
   images: (campaignId: string, signal?: AbortSignal) =>
     http.get<CampaignImageOut[]>(`/campaigns/${campaignId}/images`, { signal }),
-  addImage: (campaignId: string, file: File, options: { isCover?: boolean } = {}) =>
+  addImage: (campaignId: string, file: File, options: { isCover?: boolean; displayOrder?: number } = {}) =>
     http.post<CampaignImageOut>(`/campaigns/${campaignId}/images`, imageForm(file), {
-      query: { is_cover: options.isCover ? true : undefined },
+      query: { is_cover: options.isCover ? true : undefined, display_order: options.displayOrder },
     }),
+  setCover: (imageId: string) => http.post<CampaignImageOut>(`/campaigns/images/${imageId}/set-cover`),
   removeImage: (imageId: string) => http.delete<MessageOut>(`/campaigns/images/${imageId}`),
 };
 

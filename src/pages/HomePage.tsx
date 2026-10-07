@@ -5,7 +5,7 @@ import { useBanners } from "@/features/campaigns/queries";
 import { Highlights } from "@/features/home/Highlights";
 import { HomeCategories } from "@/features/home/HomeCategories";
 import { HomeNewProducts } from "@/features/home/HomeNewProducts";
-import { StaticHero } from "@/features/home/StaticHero";
+import { FallbackCarousel } from "@/features/home/FallbackCarousel";
 
 export default function HomePage() {
   const { isPending, banners } = useBanners();
@@ -23,7 +23,7 @@ export default function HomePage() {
               <BannerCarousel banners={banners} />
             </>
           ) : (
-            <StaticHero />
+            <FallbackCarousel />
           )}
         </Container>
       </section>

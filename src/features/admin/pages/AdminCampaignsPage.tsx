@@ -1,8 +1,9 @@
 // frontend/src/features/admin/pages/AdminCampaignsPage.tsx
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImagePlus, Images, Pencil, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Pencil, Plus, Star, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { toUserMessage } from "@/api/errors";
 import type { CampaignOut } from "@/api/types";
 import { PageHeader } from "@/components/panel/PageHeader";
 import { Section } from "@/components/panel/Section";
@@ -15,8 +16,22 @@ import { TextAreaField, TextField } from "@/components/ui/Field";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { applyApiErrors } from "@/features/auth/apply-api-errors";
 import { formatDateTime } from "@/lib/format";
-import { useAdminCampaigns, useCampaignActions, useCampaignImages } from "../hooks";
+import { toast } from "@/lib/toast";
+import { useAdminCampaigns, useCampaignActions, useCampaignImages, useCreateCampaignWithImages } from "../hooks";
 import { campaignSchema, type CampaignFormValues } from "../schemas";
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGES_ON_CREATE = 10;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+const ACCEPT = IMAGE_TYPES.join(",");
+
+function validateImages(files: File[]): string | null {
+  for (const f of files) {
+    if (!IMAGE_TYPES.includes(f.type)) return `“${f.name}”: use JPG, PNG, WebP ou AVIF.`;
+    if (f.size > MAX_IMAGE_BYTES) return `“${f.name}” passa de 5 MB.`;
+  }
+  return null;
+}
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -35,9 +50,68 @@ function toIso(local: string): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+// ── Imagens escolhidas ainda no formulário de criação ────────────────────────
+function NewImagesPicker({
+  files, onChange, coverIndex, onCoverChange,
+}: { files: File[]; onChange: (files: File[]) => void; coverIndex: number; onCoverChange: (index: number) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+  useEffect(() => () => previews.forEach((url) => URL.revokeObjectURL(url)), [previews]);
+
+  const onPick = (list: FileList | null) => {
+    const picked = Array.from(list ?? []);
+    if (input.current) input.current.value = "";
+    const problem = validateImages(picked);
+    if (problem) return setError(problem);
+    if (files.length + picked.length > MAX_IMAGES_ON_CREATE) return setError(`No máximo ${MAX_IMAGES_ON_CREATE} imagens por vez. As demais podem ser adicionadas depois.`);
+    setError(null);
+    onChange([...files, ...picked]);
+  };
+
+  const remove = (index: number) => {
+    onChange(files.filter((_, i) => i !== index));
+    if (index === coverIndex) onCoverChange(0);
+    else if (index < coverIndex) onCoverChange(coverIndex - 1);
+  };
+
+  return (
+    <fieldset className="sm:col-span-2">
+      <legend className="mb-1 text-sm font-semibold">Imagens do banner</legend>
+      <p className="mb-3 text-sm text-ink-soft">JPG, PNG, WebP ou AVIF, até 5 MB cada. A capa aparece primeiro no carrossel da home.</p>
+      {error && <Alert tone="error" className="mb-3">{error}</Alert>}
+      <input ref={input} type="file" accept={ACCEPT} multiple className="sr-only" aria-label="Escolher imagens da campanha" onChange={(e) => onPick(e.target.files)} />
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {files.map((file, i) => (
+          <li key={`${file.name}-${i}`} className="overflow-hidden rounded-xl border border-sand-200">
+            <div className="aspect-[16/9] bg-sand"><img src={previews[i]} alt="" className="size-full object-cover" /></div>
+            <div className="flex items-center justify-between gap-1 p-2">
+              <label className="flex cursor-pointer items-center gap-1.5 text-sm font-semibold">
+                <input type="radio" name="capa-campanha" checked={coverIndex === i} onChange={() => onCoverChange(i)} className="accent-oxblood-600" />
+                Capa
+              </label>
+              <Button variant="ghost" size="sm" onClick={() => remove(i)} aria-label={`Remover ${file.name}`}><X className="size-4" aria-hidden="true" /></Button>
+            </div>
+          </li>
+        ))}
+        <li>
+          <button type="button" onClick={() => input.current?.click()} className="grid aspect-[16/9] w-full cursor-pointer place-items-center rounded-xl border-2 border-dashed border-sand-200 text-center text-sm font-semibold text-ink-soft hover:border-oxblood-600 hover:text-oxblood-700 md:aspect-[16/11]">
+            <span><ImagePlus className="mx-auto mb-1 size-6" aria-hidden="true" />Adicionar imagens</span>
+          </button>
+        </li>
+      </ul>
+    </fieldset>
+  );
+}
+
+// ── Formulário (criar / editar) ──────────────────────────────────────────────
 function CampaignForm({ campaign, onDone }: { campaign?: CampaignOut; onDone: () => void }) {
-  const { create, update } = useCampaignActions();
+  const { update } = useCampaignActions();
+  const createWithImages = useCreateCampaignWithImages();
   const [formError, setFormError] = useState<string | null>(null);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [coverIndex, setCoverIndex] = useState(0);
+  const [activateNow, setActivateNow] = useState(true);
   const { register, handleSubmit, setError, formState: { errors } } = useForm<CampaignFormValues>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
@@ -47,7 +121,7 @@ function CampaignForm({ campaign, onDone }: { campaign?: CampaignOut; onDone: ()
       ends_at: toLocalInput(campaign?.ends_at),
     },
   });
-  const pending = create.isPending || update.isPending;
+  const pending = createWithImages.isPending || update.isPending;
 
   const onSubmit = handleSubmit(async (v) => {
     setFormError(null);
@@ -58,8 +132,13 @@ function CampaignForm({ campaign, onDone }: { campaign?: CampaignOut; onDone: ()
       ends_at: toIso(v.ends_at),
     };
     try {
-      if (campaign) await update.mutateAsync({ id: campaign.campaign_id, ...payload });
-      else await create.mutateAsync(payload);
+      if (campaign) {
+        await update.mutateAsync({ id: campaign.campaign_id, ...payload });
+      } else {
+        const { failed } = await createWithImages.mutateAsync({ data: payload, images: newImages, coverIndex, activate: activateNow });
+        if (failed.length > 0) toast.error(`Campanha criada, mas ${failed.length} imagem(ns) não subiram — ${failed.join(" | ")}. Tente de novo no card da campanha.`);
+        else toast.success(newImages.length > 0 ? "Campanha criada com as imagens." : "Campanha criada.");
+      }
       onDone();
     } catch (error) {
       setFormError(applyApiErrors(error, setError, ["title", "description", "starts_at", "ends_at"], "Não foi possível salvar a campanha."));
@@ -72,66 +151,77 @@ function CampaignForm({ campaign, onDone }: { campaign?: CampaignOut; onDone: ()
       <div className="sm:col-span-2"><TextAreaField label="Descrição" rows={3} error={errors.description?.message} {...register("description")} /></div>
       <TextField label="Início" type="datetime-local" error={errors.starts_at?.message} {...register("starts_at")} />
       <TextField label="Fim" type="datetime-local" error={errors.ends_at?.message} {...register("ends_at")} />
+
+      {!campaign && (
+        <>
+          <NewImagesPicker files={newImages} onChange={setNewImages} coverIndex={coverIndex} onCoverChange={setCoverIndex} />
+          <label className="flex items-center gap-2 text-sm font-semibold sm:col-span-2">
+            <input type="checkbox" checked={activateNow} onChange={(e) => setActivateNow(e.target.checked)} className="accent-oxblood-600" />
+            Ativar agora (exibir no carrossel da home)
+          </label>
+        </>
+      )}
+
       {formError && <Alert tone="error" className="sm:col-span-2">{formError}</Alert>}
       <div className="flex gap-2 sm:col-span-2">
-        <Button type="submit" loading={pending}>Salvar</Button>
+        <Button type="submit" loading={pending}>{campaign ? "Salvar" : "Criar campanha"}</Button>
         <Button variant="ghost" onClick={onDone} disabled={pending}>Cancelar</Button>
       </div>
     </form>
   );
 }
 
+// ── Fotos de uma campanha já criada (sempre visíveis no card) ────────────────
 function CampaignImages({ campaignId }: { campaignId: string }) {
   const images = useCampaignImages(campaignId, true);
-  const { addImage, removeImage } = useCampaignActions();
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [asCover, setAsCover] = useState(false);
+  const { addImage, setCover, removeImage } = useCampaignActions();
+  const input = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const onPick = async (list: FileList | null) => {
+    const files = Array.from(list ?? []);
+    if (input.current) input.current.value = "";
+    const problem = validateImages(files);
+    if (problem) return setError(problem);
+    setError(null);
+    const start = images.data?.length ?? 0;
+    for (const [i, file] of files.entries()) {
+      try {
+        await addImage.mutateAsync({ id: campaignId, file, isCover: start === 0 && i === 0, displayOrder: start + i });
+      } catch (e) {
+        setError(`“${file.name}”: ${toUserMessage(e, "falha no envio.")}`);
+      }
+    }
+  };
+
+  if (images.isPending) return <Skeleton className="mt-4 h-24" />;
+  if (images.isError) return <div className="mt-4"><ErrorState error={images.error} onRetry={() => void images.refetch()} retrying={images.isFetching} /></div>;
+
+  const sorted = [...images.data].sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || a.display_order - b.display_order);
 
   return (
     <div className="mt-4 border-t border-sand-200 pt-4">
-      <input
-        ref={fileInput}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="sr-only"
-        aria-label="Enviar imagem da campanha"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) addImage.mutate({ id: campaignId, file, isCover: asCover });
-          e.target.value = "";
-        }}
-      />
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <Button size="sm" variant="outline" loading={addImage.isPending} onClick={() => { setAsCover(false); fileInput.current?.click(); }}>
-          <ImagePlus className="size-4" aria-hidden="true" />Adicionar imagem
-        </Button>
-        <Button size="sm" variant="ghost" disabled={addImage.isPending} onClick={() => { setAsCover(true); fileInput.current?.click(); }}>
-          Enviar como capa
-        </Button>
-      </div>
-
-      {images.isPending ? <Skeleton className="h-24" /> : images.isError ? (
-        <ErrorState error={images.error} onRetry={() => void images.refetch()} retrying={images.isFetching} />
-      ) : images.data.length === 0 ? (
-        <p className="text-sm text-ink-soft">Nenhuma imagem enviada.</p>
-      ) : (
-        <ul className="flex flex-wrap gap-3">
-          {images.data.map((img) => (
-            <li key={img.campaign_mage_id} className="relative">
-              <img src={img.image_url} alt="" className="h-24 w-36 rounded-lg object-cover" loading="lazy" />
-              {img.is_cover && <span className="absolute left-1 top-1"><Badge tone="success">Capa</Badge></span>}
-              <button
-                type="button"
-                aria-label="Remover imagem"
-                onClick={() => removeImage.mutate({ imageId: img.campaign_mage_id, campaignId })}
-                className="absolute right-1 top-1 grid size-7 place-items-center rounded-full bg-white/90 shadow"
-              >
-                <Trash2 className="size-4" aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {error && <Alert tone="error" className="mb-3">{error}</Alert>}
+      <input ref={input} type="file" accept={ACCEPT} multiple className="sr-only" aria-label="Enviar imagens da campanha" onChange={(e) => void onPick(e.target.files)} />
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {sorted.map((img) => (
+          <li key={img.campaign_mage_id} className="overflow-hidden rounded-xl border border-sand-200">
+            <div className="aspect-[16/9] bg-sand"><img src={img.image_url} alt="" loading="lazy" className="size-full object-cover" /></div>
+            <div className="flex items-center justify-between gap-1 p-2">
+              {img.is_cover ? <Badge tone="success">Capa</Badge> : (
+                <Button variant="ghost" size="sm" onClick={() => setCover.mutate({ imageId: img.campaign_mage_id, campaignId })} aria-label="Definir como capa"><Star className="size-4" aria-hidden="true" /></Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => removeImage.mutate({ imageId: img.campaign_mage_id, campaignId })} aria-label="Excluir imagem"><Trash2 className="size-4" aria-hidden="true" /></Button>
+            </div>
+          </li>
+        ))}
+        <li>
+          <button type="button" onClick={() => input.current?.click()} className="grid aspect-[16/9] w-full cursor-pointer place-items-center rounded-xl border-2 border-dashed border-sand-200 text-center text-sm font-semibold text-ink-soft hover:border-oxblood-600 hover:text-oxblood-700 md:aspect-[16/11]">
+            <span><ImagePlus className="mx-auto mb-1 size-6" aria-hidden="true" />{addImage.isPending ? "Enviando…" : "Adicionar"}</span>
+          </button>
+        </li>
+      </ul>
+      {sorted.length === 0 && <p className="mt-2 text-sm text-ink-soft">Sem imagens: a campanha não aparece no carrossel até ter pelo menos uma.</p>}
     </div>
   );
 }
@@ -141,7 +231,6 @@ export default function AdminCampaignsPage() {
   const actions = useCampaignActions();
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [imagesId, setImagesId] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<CampaignOut | null>(null);
 
   return (
@@ -172,13 +261,12 @@ export default function AdminCampaignsPage() {
                       <div className="mt-1"><Badge tone={c.is_active ? "success" : "neutral"}>{c.is_active ? "Ativa" : "Inativa"}</Badge></div>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => setImagesId(imagesId === c.campaign_id ? null : c.campaign_id)} aria-label={`Imagens de ${c.title}`}><Images className="size-4" aria-hidden="true" />Imagens</Button>
                       <Button variant="ghost" size="sm" onClick={() => { setEditingId(c.campaign_id); setAdding(false); }} aria-label={`Editar ${c.title}`}><Pencil className="size-4" aria-hidden="true" />Editar</Button>
                       <Button variant="ghost" size="sm" onClick={() => actions.toggle.mutate({ id: c.campaign_id, active: !c.is_active })}>{c.is_active ? "Desativar" : "Ativar"}</Button>
                       <Button variant="ghost" size="sm" onClick={() => setToDelete(c)} aria-label={`Excluir ${c.title}`}><Trash2 className="size-4" aria-hidden="true" /></Button>
                     </div>
                   </div>
-                  {imagesId === c.campaign_id && <CampaignImages campaignId={c.campaign_id} />}
+                  <CampaignImages campaignId={c.campaign_id} />
                 </>
               )}
             </li>
@@ -189,7 +277,7 @@ export default function AdminCampaignsPage() {
       <ConfirmDialog
         open={Boolean(toDelete)}
         title="Excluir campanha?"
-        description={toDelete ? `“${toDelete.title}” será removida.` : undefined}
+        description={toDelete ? `“${toDelete.title}” e as imagens dela serão removidas.` : undefined}
         confirmLabel="Excluir"
         loading={actions.remove.isPending}
         onCancel={() => setToDelete(null)}

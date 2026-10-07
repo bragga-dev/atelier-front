@@ -3,6 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { adminCampaignsApi, adminCategoriesApi, adminContactApi, adminProductsApi, adminUsersApi, dashboardApi, type AdminProductsParams, type DashboardParams } from "@/api/endpoints/admin";
 import { ordersApi } from "@/api/endpoints/orders";
 import { reviewsApi } from "@/api/endpoints/reviews";
+import { toUserMessage } from "@/api/errors";
 import { queryKeys } from "@/api/query-keys";
 import type { CampaignCreateIn, CampaignUpdateIn, CategoryCreateIn, CategoryUpdateIn, ContactStatus, ProductUpdateIn } from "@/api/types";
 import { toast } from "@/lib/toast";
@@ -143,11 +144,49 @@ export function useCampaignImages(campaignId: string, enabled: boolean) {
   return useQuery({ queryKey: K.campaignImages(campaignId), queryFn: ({ signal }) => adminCampaignsApi.images(campaignId, signal), enabled });
 }
 
+export interface CreateCampaignWithImagesInput {
+  data: CampaignCreateIn;
+  images: File[];
+  coverIndex: number;
+  /** Campanha nasce inativa no backend; `true` ativa logo após criar (pra aparecer no carrossel). */
+  activate: boolean;
+}
+
+/**
+ * Cria a campanha e envia as imagens em seguida (o backend não tem endpoint "full" pra campanha).
+ * Upload sequencial: a capa é marcada no próprio envio e `display_order` segue a ordem escolhida.
+ * Falha de uma imagem não desfaz a campanha — volta em `failed` pra pessoa tentar de novo no card.
+ */
+export function useCreateCampaignWithImages() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    meta: { errorToast: false },
+    mutationFn: async ({ data, images, coverIndex, activate }: CreateCampaignWithImagesInput) => {
+      const campaign = await adminCampaignsApi.create(data);
+      const failed: string[] = [];
+      for (const [i, file] of images.entries()) {
+        try {
+          await adminCampaignsApi.addImage(campaign.campaign_id, file, { isCover: i === coverIndex, displayOrder: i });
+        } catch (error) {
+          failed.push(`${file.name}: ${toUserMessage(error, "falha no envio.")}`);
+        }
+      }
+      if (activate) await adminCampaignsApi.activate(campaign.campaign_id);
+      return { campaign, failed };
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: K.campaigns });
+      void queryClient.invalidateQueries({ queryKey: ["campaigns"] }); // carrossel da home
+    },
+  });
+}
+
 export function useCampaignActions() {
   const queryClient = useQueryClient();
   const done = (message?: string) => () => {
     void queryClient.invalidateQueries({ queryKey: K.campaigns });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.running }); // carrossel da home
+    // Carrossel da home: campanhas vigentes + imagens (chaves públicas, com staleTime de 5 min).
+    void queryClient.invalidateQueries({ queryKey: ["campaigns"] });
     if (message) toast.success(message);
   };
   return {
@@ -162,8 +201,12 @@ export function useCampaignActions() {
     }),
     remove: useMutation({ mutationFn: adminCampaignsApi.remove, onSuccess: done("Campanha excluída.") }),
     addImage: useMutation({
-      mutationFn: ({ id, file, isCover }: { id: string; file: File; isCover?: boolean }) => adminCampaignsApi.addImage(id, file, { isCover }),
+      mutationFn: ({ id, file, isCover, displayOrder }: { id: string; file: File; isCover?: boolean; displayOrder?: number }) => adminCampaignsApi.addImage(id, file, { isCover, displayOrder }),
       onSuccess: (_d, v) => { void queryClient.invalidateQueries({ queryKey: K.campaignImages(v.id) }); done("Imagem enviada.")(); },
+    }),
+    setCover: useMutation({
+      mutationFn: ({ imageId }: { imageId: string; campaignId: string }) => adminCampaignsApi.setCover(imageId),
+      onSuccess: (_d, v) => { void queryClient.invalidateQueries({ queryKey: K.campaignImages(v.campaignId) }); done("Capa atualizada.")(); },
     }),
     removeImage: useMutation({
       mutationFn: ({ imageId }: { imageId: string; campaignId: string }) => adminCampaignsApi.removeImage(imageId),
