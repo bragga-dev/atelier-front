@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Bell, Menu, MessageCircle, ShoppingCart } from "lucide-react";
+import { Bell, Menu, ShoppingCart } from "lucide-react";
 import { Link, NavLink } from "react-router";
 import { useAuth } from "@/features/auth/auth-context";
-import { isAdminUser } from "@/features/auth/display-name";
 import { useCartItemCount } from "@/features/cart/queries";
 import { useUnreadCount } from "@/features/notifications/queries";
 import { cn } from "@/lib/cn";
@@ -35,7 +34,7 @@ function DesktopNavLink({ item }: { item: NavItem }) {
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { me, status, isAuthenticated } = useAuth();
+  const { status, isAuthenticated } = useAuth();
   const { data: cartCount } = useCartItemCount();
   const { data: unreadCount } = useUnreadCount();
 
@@ -75,7 +74,6 @@ export function Header() {
 
             <HeaderIconLink to="/carrinho" label="Carrinho" icon={ShoppingCart} badge={cartCount} />
             <HeaderIconLink to="/notificacoes" label="Notificações" icon={Bell} badge={unreadCount} />
-            <HeaderIconLink to={isAdminUser(me) ? "/admin/chat" : "/chat"} label="Chat com a loja" icon={MessageCircle} />
             <UserMenu className="hidden sm:block" />
 
             <button

@@ -25,6 +25,8 @@ interface ChatWindowProps {
   currentUserId: string;
   /** Desabilita o envio (conversa encerrada). */
   readOnly?: boolean;
+  /** Preenche o container (popup do chat): sem altura fixa, borda nem cantos arredondados. */
+  embedded?: boolean;
 }
 
 /** Anexo na bolha. Imagem que não carrega (URL expirada/inacessível) vira link com o nome — nunca só o alt-text solto. */
@@ -55,7 +57,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-export function ChatWindow({ conversationId, currentUserId, readOnly = false }: ChatWindowProps) {
+export function ChatWindow({ conversationId, currentUserId, readOnly = false, embedded = false }: ChatWindowProps) {
   const queryClient = useQueryClient();
   const messages = useMessages(conversationId);
   const [text, setText] = useState("");
@@ -139,11 +141,16 @@ export function ChatWindow({ conversationId, currentUserId, readOnly = false }: 
     }
   };
 
-  if (messages.isPending) return <div className="grid h-80 place-items-center"><Spinner label="Carregando conversa…" /></div>;
+  if (messages.isPending) return <div className={cn("grid place-items-center", embedded ? "h-full" : "h-80")}><Spinner label="Carregando conversa…" /></div>;
   if (messages.isError) return <ErrorState error={messages.error} onRetry={() => void messages.refetch()} retrying={messages.isFetching} />;
 
   return (
-    <div className="flex h-[32rem] max-h-[75vh] flex-col overflow-hidden rounded-[var(--radius-card)] border border-sand-200 bg-white">
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden bg-white",
+        embedded ? "h-full min-h-0" : "h-[32rem] max-h-[75vh] rounded-[var(--radius-card)] border border-sand-200",
+      )}
+    >
       {socket.fatal ? (
         <Alert tone="error" className="m-3">{socket.fatal}</Alert>
       ) : socket.status !== "open" ? (

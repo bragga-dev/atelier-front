@@ -1,5 +1,6 @@
 // frontend/src/features/chat/pages/AdminChatPage.tsx
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 import { MessageCircle } from "lucide-react";
 import { PageHeader } from "@/components/panel/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -13,12 +14,13 @@ import { useAdminInbox } from "../hooks";
 export default function AdminChatPage() {
   const { me } = useAuth();
   const inbox = useAdminInbox();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [params] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<string | null>(params.get("conversa"));
   const list = inbox.data ?? [];
 
-  // Seleciona a primeira conversa assim que a lista chega.
+  // Seleciona a primeira conversa assim que a lista chega (ou se o id pedido não existir).
   useEffect(() => {
-    if (!selectedId && list.length > 0) setSelectedId(list[0]!.conversation_id);
+    if (list.length > 0 && !list.some((c) => c.conversation_id === selectedId)) setSelectedId(list[0]!.conversation_id);
   }, [list, selectedId]);
 
   const selected = list.find((c) => c.conversation_id === selectedId);

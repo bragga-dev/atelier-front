@@ -1,5 +1,6 @@
 import { Outlet, ScrollRestoration } from "react-router";
 import { ToastViewport } from "@/components/ui/ToastViewport";
+import { ChatWidget } from "@/features/chat/components/ChatWidget";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { NavigationProgress } from "./NavigationProgress";
@@ -22,6 +23,7 @@ export function RootLayout() {
       </main>
 
       <Footer />
+      <ChatWidget />
       <ToastViewport />
       <ScrollRestoration />
     </div>
